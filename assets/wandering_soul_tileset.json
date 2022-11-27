@@ -1,0 +1,14 @@
+{ "columns":11,
+ "image":"tileset_final.png",
+ "imageheight":176,
+ "imagewidth":176,
+ "margin":0,
+ "name":"wandering_soul_tileset",
+ "spacing":0,
+ "tilecount":121,
+ "tiledversion":"1.7.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.6"
+}

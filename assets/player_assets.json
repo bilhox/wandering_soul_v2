@@ -1,0 +1,18 @@
+{
+    "textures":[
+        {
+            "name":"jumping",
+            "source":"./images/player_jump.png"
+        }
+    ],
+    "animations":[
+        {
+            "name":"idle",
+            "source":"./images/animations/config.json"
+        },
+        {
+            "name":"running",
+            "source":"./images/animations/config2.json"
+        }
+    ]
+}
