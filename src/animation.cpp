@@ -8,6 +8,12 @@ Animation::Animation(){
     m_timer = 0.f;
     m_currentIndex = 0;
     m_slice = {0,0};
+    name = "";
+}
+
+void Animation::reset(){
+    m_currentIndex = 0.f;
+    m_timer = 0.f;
 }
 
 bool Animation::load(std::string anim_path) {

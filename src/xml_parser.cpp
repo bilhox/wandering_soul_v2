@@ -210,11 +210,6 @@ Tree parse(std::string fpath){
         }
     }
 
-    for(auto & node : tree_struct){
-        std::cout << node.tag << " : " << std::endl;
-        std::cout << node.content << std::endl;
-    }
-
     Node root{};
     unsigned int hindex {*std::max_element(node_heights.begin() , node_heights.end())};
     auto findex {std::begin(node_heights)};

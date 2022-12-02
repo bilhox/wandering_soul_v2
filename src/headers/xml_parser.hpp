@@ -1,5 +1,3 @@
-#ifndef XML_PARSER_HPP
-#define XML_PARSER_HPP
 
 #include <stack>
 #include <vector>
@@ -44,5 +42,3 @@ class Tree{
 };
 
 Tree parse(std::string file);
-
-#endif

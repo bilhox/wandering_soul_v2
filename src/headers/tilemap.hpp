@@ -1,11 +1,17 @@
-#ifndef TILEMAP_HPP
-#define TILEMAP_HPP
 #pragma once
 
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <string>
 #include <array>
+#include <map>
+
+struct ObjectData{
+
+    std::string name;
+    std::string type;
+    sf::FloatRect rect;
+};
 
 class Tilemap : public sf::Transformable {
 
@@ -16,6 +22,7 @@ class Tilemap : public sf::Transformable {
         const sf::Vector2u getSize() const;
         const sf::Vector2u getTileSize() const;
         const std::vector<sf::FloatRect> & getColliders() const;
+        const ObjectData & getObject(std::string name) ;
         void display(sf::RenderWindow & window , sf::View view , int lindex = -1);
 
     private:
@@ -27,9 +34,8 @@ class Tilemap : public sf::Transformable {
         std::vector<std::vector<unsigned int>> m_layer_datas;
         int m_LayerToDisplay;
         std::vector<sf::FloatRect> m_colliders;
+        std::map<std::string , ObjectData> m_objects;
 
         void draw(sf::RenderTarget & target , sf::View view) const;
 
 };
-
-#endif // TILEMAP_HPP

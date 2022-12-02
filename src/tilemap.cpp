@@ -13,6 +13,14 @@ Tilemap::Tilemap(){
     m_layers = {};
 }
 
+const ObjectData & Tilemap::getObject(std::string name) {
+    if(m_objects.find(name) != m_objects.end()){
+        return m_objects[name];
+    } else {
+        throw std::runtime_error("Could not find an object with the name : "+name);
+    }
+}
+
 bool Tilemap::load(std::string tmx_path){
 
     m_colliders.clear();
@@ -52,10 +60,22 @@ bool Tilemap::load(std::string tmx_path){
     for(auto layer : layers){
 
         if(layer["type"] != "tilelayer"){
-            if(layer["type"] == "objectgroup" && layer["name"] == "colliders"){
-                for(auto & object : layer["objects"]){
-                    auto collider = sf::FloatRect(sf::Vector2f{object["x"] , object["y"]},sf::Vector2f{object["width"],object["height"]});
-                    m_colliders.push_back(collider);
+            if(layer["type"] == "objectgroup"){
+                if(layer["name"] == "colliders"){
+                    for(auto & object : layer["objects"]){
+                        auto collider = sf::FloatRect(sf::Vector2f{object["x"] , object["y"]},sf::Vector2f{object["width"],object["height"]});
+                        m_colliders.push_back(collider);
+                    }
+                } else if (layer["name"] == "objects"){
+                    for(auto & object : layer["objects"]){
+                        ObjectData obj;
+                        obj.name = object["name"];
+                        obj.rect.left = object["x"];
+                        obj.rect.top = object["y"];
+                        obj.rect.width = object["width"];
+                        obj.rect.height = object["height"];
+                        m_objects[object["name"]] = obj;
+                    }
                 }
             }
             continue;

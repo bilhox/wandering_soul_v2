@@ -1,5 +1,3 @@
-#ifndef ANIMATION_HPP
-#define ANIMATION_HPP
 #pragma once
 
 #include <SFML/Graphics.hpp>
@@ -12,10 +10,13 @@
 class Animation{
 
     public:
+        std::string name;
+    public:
         Animation();
         bool load(std::string anim_path);
         void update(float dt);
         void prepareTexture(sf::VertexArray & vertices);
+        void reset();
         sf::Texture & getTexture();
     
     private:
@@ -29,5 +30,3 @@ class Animation{
 
 
 };
-
-#endif // ANIMATION_HPP

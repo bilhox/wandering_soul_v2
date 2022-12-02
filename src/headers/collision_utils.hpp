@@ -1,5 +1,3 @@
-#ifndef COLLISION_UTILS_HPP
-#define COLLISION_UTILS_HPP
 #pragma once
 
 #include <SFML/Graphics.hpp>
@@ -18,5 +16,3 @@ struct Line {
 };
 
 std::vector<sf::FloatRect> collideLine(const std::vector<sf::FloatRect> & colliders , sf::FloatRect rect , sf::Vector2f movement);
-
-#endif

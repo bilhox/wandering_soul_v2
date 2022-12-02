@@ -4,17 +4,44 @@
 #include "headers/tilemap.hpp"
 #include "headers/player.hpp"
 #include <cmath>
+#include <random>
+
+struct EntityData{
+    Entity projectile;
+    sf::Vector2f movement;
+};
+
+EntityData instanciateProjectile(sf::Texture & texture){
+    Entity projectile{};
+    projectile.setTexture(texture);
+    projectile.setSize({5,5});
+    projectile.setTextSize({5,5});
+    projectile.setTextOffset({2,2});
+    projectile.resetTextCoords();
+    EntityData entData;
+    entData.movement = {-1.f , 0};
+    entData.projectile = projectile;
+    return entData;
+}
 
 int main()
 {
 
     auto map = Tilemap();
+
     map.load("../assets/map_test.json");
+
+    sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
     auto window = sf::RenderWindow{ { 900u, 600u }, "XML parser test"};
     window.setFramerateLimit(120);
+    window.setKeyRepeatEnabled(false);
 
     Player player {};
-    player.setPosition({300 , 100});
+
+    auto startPos = map.getObject("player_position");
+    player.setPosition(startPos.rect.getPosition());
+    float death_time = 2.f;
+    float proj_spawn = 0.25f;
 
     sf::Clock clock{};
     float dt = 0;
@@ -22,12 +49,16 @@ int main()
     std::vector<sf::FloatRect> colliders{};
     
     sf::View camera {sf::FloatRect({0,0},{300 , 200})};
-    // sf::View IntCamera;
-    // window.setView(camera);
-    
-    // for (auto & rect : map.getColliders()){
-    //     std::cout << rect.left << " ; " << rect.top << " ; " << rect.width << " ; " << rect.height << std::endl;
-    // }
+    std::vector<EntityData> projectiles;
+
+    sf::Texture proj;
+    proj.loadFromFile("../assets/images/projectile.png");
+
+    for(int i = 0;i < 14;i++){
+        auto entData = instanciateProjectile(proj);
+        entData.projectile.setPosition({300,((200 / 12.f)*i)});
+        projectiles.push_back(entData);
+    }
 
     float dtAvg = 0.f;
     int tick = 0;
@@ -77,11 +108,32 @@ int main()
         }
 
         player.update(dt);
-        player.collisions(map.getColliders());
+        player.collisions(map.getColliders() , camera);
         player.postUpdate(dt);
-        // std::cout << player.getPosition().x << " ; " << player.getPosition().y << std::endl;
 
-        camera.setCenter(player.getPosition()+player.getSize()*.5f);
+        for(int i = projectiles.size() -1 ; i >= 0 ; i--){
+            projectiles[i].projectile.move(projectiles[i].movement);
+            if(player.isAlive()){
+
+                if(player.getRect().intersects(projectiles[i].projectile.getRect()))
+                    player.die();
+                
+                if(!projectiles[i].projectile.getRect().intersects(mapRect)){
+                    projectiles.erase(projectiles.begin()+i);
+                }
+            }
+        }
+
+        if(!player.isAlive()){
+            death_time -= dt;
+            if(death_time <= 0.f){
+                death_time = 2.f;
+                player.respawn();
+            }
+        }
+
+        if(!player.isSoul() && player.isAlive())
+            camera.move(((player.getPosition()+player.getSize()*.5f)-camera.getCenter())*0.1f);
         sf::Vector2f topleftCameraCorner = (camera.getCenter()-camera.getSize()/2.f);
 
         if(topleftCameraCorner.x < 0){
@@ -95,13 +147,27 @@ int main()
             camera.setCenter({camera.getCenter().x,map.getSize().y*map.getTileSize().y-(camera.getSize()/2.f).y});
         }
 
-        // auto camPos = camera.getCenter();
-        // camera.setCenter({std::trunc(camPos.x) , std::trunc(camPos.y)});
+        proj_spawn -= dt;
+        if(proj_spawn <= 0.f){
+            auto p = instanciateProjectile(proj);
+            int angle = Random::randInt(urdi(60,120));
+            sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
+            int randXpos = Random::randInt(urdi(0,(int)camRect.width));
+            p.movement = {std::cos((float)(M_PI/180)*angle),std::sin((float)(M_PI/180)*angle)};
+            p.projectile.setPosition({camRect.left+randXpos,camRect.top});
+            projectiles.push_back(p);
+            proj_spawn = 0.25f;
+        }
+
 
         window.clear();
         map.display(window , camera , 0);
-        player.display(window , camera);
+        player.display(window , camera , 0);
+        for(auto & p : projectiles){
+            p.projectile.display(window , camera);
+        }
         map.display(window , camera , 1);
+        player.display(window , camera , 1);
         window.display();
     }
 

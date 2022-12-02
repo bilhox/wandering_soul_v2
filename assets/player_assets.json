@@ -3,6 +3,10 @@
         {
             "name":"jumping",
             "source":"./images/player_jump.png"
+        },
+        {
+            "name":"soul",
+            "source":"./images/soul_idle.png"
         }
     ],
     "animations":[

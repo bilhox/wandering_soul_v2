@@ -16,6 +16,8 @@ src/utils.cpp
 src/player.cpp
 src/animation.cpp
 src/asset_manager.cpp
+src/spark.cpp
+src/particle_system.cpp
 )
 target_link_libraries(platformer PRIVATE sfml-graphics)
 target_compile_features(platformer PRIVATE cxx_std_17)

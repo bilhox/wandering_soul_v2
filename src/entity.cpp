@@ -1,5 +1,4 @@
 #include "headers/entity.hpp"
-#include "headers/collision_utils.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -9,6 +8,8 @@ Entity::Entity(){
     m_rect = sf::FloatRect(sf::Vector2f(0,0) , sf::Vector2f(0,0));
     m_collisionSide = {{"right" , false},{"left" , false},{"top" , false},{"down" , false}};
     m_flip = false;
+    m_rotation = 0.f;
+    setOrigin({0,0});
 }
 
 void Entity::setPosition(const sf::Vector2f & position){
@@ -25,42 +26,14 @@ void Entity::events(sf::Event & event , sf::Window & window , float dt){
 
 }
 
-void Entity::postUpdate(float dt){
+const sf::FloatRect & Entity::getRect() const {
+    return m_rect;
 }
 
 void Entity::move(const sf::Vector2f & offset){
     Transformable::move(offset);
     m_rect.left += offset.x;
     m_rect.top += offset.y;
-}
-
-void Entity::collisions(const std::vector<sf::FloatRect> & colliders){
-    m_collisionSide = {{"right" , false},{"left" , false},{"top" , false},{"down" , false}};
-    move({m_velocity.x , 0});
-    auto collided = collide(colliders , m_rect);
-    for (auto & collider : collided){
-        if(m_velocity.x < 0){
-            setPosition({collider.left+collider.width,m_rect.top});
-            m_collisionSide["left"] = true;
-        }
-        else if (m_velocity.x > 0){
-            setPosition({collider.left-m_rect.width,m_rect.top});
-            m_collisionSide["right"] = true;
-        }
-    }
-
-    move({0,m_velocity.y});
-    collided = collide(colliders , m_rect);
-    for (auto & collider : collided){
-        if(m_velocity.y < 0){
-            setPosition({m_rect.left,collider.top+collider.height});
-            m_collisionSide["top"] = true;
-        }
-        else if (m_velocity.y > 0){
-            setPosition({m_rect.left,collider.top-m_rect.height});
-            m_collisionSide["down"] = true;
-        }
-    }
 }
 
 void Entity::setSize(sf::Vector2f size){
@@ -81,6 +54,13 @@ void Entity::setTexture(sf::Texture & texture){
     setSize(sf::Vector2f(m_texture->getSize()));
 }
 
+void Entity::resetTextCoords(){
+    for(int i = 0; i < m_vertices.getVertexCount();i++){
+        sf::Vertex* vertex = &m_vertices[i];
+        vertex->texCoords = sf::Vector2f(m_textSize.x*(i%2),m_textSize.y*(i/2));
+    }
+}
+
 void Entity::display(sf::RenderWindow & window , sf::View view) const {
     draw(window , view);
 }
@@ -93,6 +73,8 @@ void Entity::draw(sf::RenderTarget & target , sf::View view) const {
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
     transform.scale(sf::Vector2f((m_flip)?-3:3,3));
+    auto origin = getOrigin();
+    transform.rotate(m_rotation , origin.x , origin.y);
     states.transform = transform;
     states.texture = &*m_texture;
 
@@ -101,4 +83,8 @@ void Entity::draw(sf::RenderTarget & target , sf::View view) const {
 
 sf::Vector2f Entity::getSize() const {
     return m_rect.getSize();
+}
+
+void Entity::setTextOffset(sf::Vector2f offset){
+    m_textOffset = offset;
 }
