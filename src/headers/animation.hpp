@@ -18,6 +18,7 @@ class Animation{
         void prepareTexture(sf::VertexArray & vertices);
         void reset();
         sf::Texture & getTexture();
+        sf::IntRect getTextRect();
     
     private:
         
@@ -27,6 +28,7 @@ class Animation{
         float m_timer;
         int m_currentIndex;
         sf::Vector2u m_slice;
+        bool m_infinite;
 
 
 };

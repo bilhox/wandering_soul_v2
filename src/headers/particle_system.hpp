@@ -2,7 +2,13 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <map>
+#include "animation.hpp"
 #include "utils.hpp"
+
+enum class TextState{
+    ANIMATION,
+    TEXTURE
+};
 
 class Particle{
 
@@ -16,15 +22,20 @@ class Particle{
         void move(const sf::Vector2f & movement);
         void display(sf::RenderTarget & target , sf::View view) const;
         void setTexture(sf::Texture & texture);
-        void setTexture(sf::Texture* texture);
+        void setAnimation(Animation & aninmation);
+        sf::VertexArray & getVertices();
         bool isAlive() const;
+        void setTextPos(sf::Vector2f start , sf::Vector2f end);
     
     private:
+        sf::Texture* m_texture = nullptr;
         sf::VertexArray m_vertices;
-        sf::Texture* m_texture;
         sf::Vector2f m_position;
         bool m_alive;
         float m_duration;
+        sf::Vector2f m_textSize;
+        Animation m_anim;
+        TextState m_textState;
 
 };
 
@@ -37,12 +48,18 @@ class ParticleSystem{
         void setSpawnRate(float rate);
         void setTexture(sf::Texture & texture);
         void setRange(std::string type , float min , float max);
+        void setContinuous(bool state);
+        void setAnimation(Animation & animation);
     
     private:
+
         float m_spawnRate;
         float m_timer;
+        bool m_continuous;
         sf::Vector2f m_position;
-        sf::Texture* m_texture;
         std::map<std::string , urdf> m_urdfs;
         std::vector<Particle> m_particles;
+        TextState m_textState;
+        Animation m_anim;
+        sf::Texture* m_texture = nullptr;
 };

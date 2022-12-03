@@ -41,7 +41,7 @@ int main()
     auto startPos = map.getObject("player_position");
     player.setPosition(startPos.rect.getPosition());
     float death_time = 2.f;
-    float proj_spawn = 0.25f;
+    float proj_spawn = 0.5f;
 
     sf::Clock clock{};
     float dt = 0;
@@ -57,6 +57,7 @@ int main()
     for(int i = 0;i < 14;i++){
         auto entData = instanciateProjectile(proj);
         entData.projectile.setPosition({300,((200 / 12.f)*i)});
+        entData.movement = sf::Vector2f(-1 , 0)*50.f;
         projectiles.push_back(entData);
     }
 
@@ -112,11 +113,14 @@ int main()
         player.postUpdate(dt);
 
         for(int i = projectiles.size() -1 ; i >= 0 ; i--){
-            projectiles[i].projectile.move(projectiles[i].movement);
+            projectiles[i].projectile.move(projectiles[i].movement*dt);
             if(player.isAlive()){
 
-                if(player.getRect().intersects(projectiles[i].projectile.getRect()))
+                if(player.getRect().intersects(projectiles[i].projectile.getRect())){
                     player.die();
+                    projectiles.clear();
+                    break;
+                }
                 
                 if(!projectiles[i].projectile.getRect().intersects(mapRect)){
                     projectiles.erase(projectiles.begin()+i);
@@ -147,27 +151,32 @@ int main()
             camera.setCenter({camera.getCenter().x,map.getSize().y*map.getTileSize().y-(camera.getSize()/2.f).y});
         }
 
-        proj_spawn -= dt;
-        if(proj_spawn <= 0.f){
-            auto p = instanciateProjectile(proj);
-            int angle = Random::randInt(urdi(60,120));
-            sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
-            int randXpos = Random::randInt(urdi(0,(int)camRect.width));
-            p.movement = {std::cos((float)(M_PI/180)*angle),std::sin((float)(M_PI/180)*angle)};
-            p.projectile.setPosition({camRect.left+randXpos,camRect.top});
-            projectiles.push_back(p);
-            proj_spawn = 0.25f;
+        if(player.isAlive()){
+            proj_spawn -= dt;
+            if(proj_spawn <= 0.f){
+                auto p = instanciateProjectile(proj);
+                int angle = Random::randInt(urdi(60,120));
+                sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
+                int randXpos = Random::randInt(urdi(0,(int)camRect.width));
+                p.movement = sf::Vector2f{std::cos((float)(M_PI/180)*angle),std::sin((float)(M_PI/180)*angle)}*50.f;
+                p.projectile.setPosition({camRect.left+randXpos,camRect.top});
+                projectiles.push_back(p);
+                proj_spawn = 0.5f;
+            }
         }
 
 
         window.clear();
         map.display(window , camera , 0);
-        player.display(window , camera , 0);
+        if(!player.isSoul())
+            player.display(window , camera , 0);
         for(auto & p : projectiles){
             p.projectile.display(window , camera);
         }
         map.display(window , camera , 1);
         player.display(window , camera , 1);
+        if(player.isSoul())
+            player.display(window , camera , 0);
         window.display();
     }
 

@@ -42,6 +42,8 @@ bool Animation::load(std::string anim_path) {
 
     auto slice = animFile["slice"].get<std::vector<unsigned int>>();
     m_slice = {slice[0] , slice[1]};
+
+    m_infinite = animFile["infinite"];
     
     auto durations = animFile["frames"].get<std::vector<float>>();
     float sum = 0;
@@ -57,8 +59,13 @@ bool Animation::load(std::string anim_path) {
 void Animation::update(float dt){
     m_timer += dt;
 
-    if(m_timer - m_duration >= 0.f)
-        m_timer = 0.f;
+    if(m_timer - m_duration >= 0.f){
+        if(m_infinite){
+            m_timer = 0.f;
+        } else {
+            m_timer = m_duration;
+        }
+    }
 
     int i = 0;
     for(auto & duration : m_timepoints){
@@ -81,6 +88,10 @@ void Animation::prepareTexture(sf::VertexArray & vertices){
         vertex->texCoords.x = offset+(i%2)*m_slice.x;
         vertex->texCoords.y = (i/2)*m_slice.y;
     }
+}
+
+sf::IntRect Animation::getTextRect(){
+    return sf::IntRect{sf::Vector2i{m_currentIndex*m_slice.x , 0},sf::Vector2i(m_slice)};
 }
 
 sf::Texture & Animation::getTexture() {

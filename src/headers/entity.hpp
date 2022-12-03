@@ -26,7 +26,7 @@ class Entity : public sf::Transformable {
         std::map<std::string , bool> m_collisionSide;
         sf::FloatRect m_rect;
         sf::VertexArray m_vertices;
-        sf::Texture* m_texture;
+        sf::Texture* m_texture = nullptr;
         sf::Vector2f m_textOffset;
         sf::Vector2f m_textSize;
         float m_rotation;

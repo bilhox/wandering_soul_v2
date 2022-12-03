@@ -83,6 +83,7 @@ void Player::die(){
         s.setColor(sf::Color::White);
         m_sparks.push_back(s);
     }
+    m_pSys.setContinuous(false);
 }
 
 void Player::respawn(){
@@ -152,11 +153,13 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
                     resetTextCoords();
                     setTextSize({13,17});
                     setTextOffset({3,3});
+                    m_pSys.setContinuous(false);
                 } else {
                     m_state = State::SOUL;
                     resetTextCoords();
                     setTextSize({9,9});
                     setTextOffset({1,-2});
+                    m_pSys.setContinuous(true);
                 }
             }
             break;
@@ -185,8 +188,6 @@ Player::Player(){
     m_gravity = 3.f;
     m_assets = AssetManager();
     m_assets.loadFromFile("../assets/player_assets.json");
-    m_pSys.setTexture(m_assets.getTexture("jumping"));
-    m_pSys.setRange("speed" , 100 , 200);
     m_anim = &m_assets.getAnimation("idle");
     setSize({7 , 13});
     setOrigin({5,7});
@@ -197,7 +198,13 @@ Player::Player(){
     m_state = State::NORMAL;
     m_jumping = false;
     m_alive = true;
-    m_pSys = ParticleSystem(m_rect.getPosition()+m_rect.getSize()*0.5f);
+    m_pSys.setAnimation(m_assets.getAnimation("particle"));
+    m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
+    m_pSys.setRange("speed" , 5 , 8);
+    m_pSys.setRange("angle" , -90 , -90);
+    m_pSys.setRange("duration" , 1 , 2);
+    m_pSys.setSpawnRate(.1f);
+    m_pSys.setRange("offsetX" , -4 , 4);
 }
 
 void Player::collisions(const std::vector<sf::FloatRect> & colliders , sf::View & view){
@@ -325,11 +332,10 @@ void Player::display(sf::RenderWindow & window , sf::View view , unsigned int to
             for(auto & spark : m_sparks){
                 spark.draw(window , view);
             }
+            m_pSys.display(window , view);
             break;
         
         default:
             break;
     }
-
-    m_pSys.display(window , view);
 }

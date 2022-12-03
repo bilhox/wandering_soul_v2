@@ -17,6 +17,10 @@
         {
             "name":"running",
             "source":"./images/animations/config2.json"
+        },
+        {
+            "name":"particle",
+            "source":"./images/animations/particle_config.json"
         }
     ]
 }
