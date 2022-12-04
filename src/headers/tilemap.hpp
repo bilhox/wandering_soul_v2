@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include "json.hpp"
 #include <vector>
 #include <string>
 #include <array>
@@ -11,6 +12,7 @@ struct ObjectData{
     std::string name;
     std::string type;
     sf::FloatRect rect;
+    nlohmann::json properties;
 };
 
 class Tilemap : public sf::Transformable {

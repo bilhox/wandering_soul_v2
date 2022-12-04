@@ -21,17 +21,23 @@ bool Particle::isAlive() const {
     return m_alive;
 }
 
-void Particle::display(sf::RenderTarget & target , sf::View view) const {
+void Particle::display(sf::RenderTarget & target , sf::View view) {
     sf::RenderStates states;
-    auto textoffset = (m_texture)?(sf::Vector2f{m_textSize}*.5f):sf::Vector2f(0,0);
+    sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
+    auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
+    auto textoffset = sf::Vector2f{m_textSize}*.5f;
     auto translation = m_position-textoffset-view.getCenter()+view.getSize()*0.5f;
-    translation.x = std::round(translation.x*3.f);
-    translation.y = std::round(translation.y*3.f);
+    translation.x = std::round(translation.x*zoom.x);
+    translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
-    transform.scale(sf::Vector2f(3,3));
+    transform.scale(sf::Vector2f(zoom.x,zoom.y));
     states.transform = transform;
-    states.texture = &*m_texture;
+    if(m_textState == TextState::TEXTURE){
+        states.texture = &*m_texture;
+    } else if (m_textState == TextState::ANIMATION){
+        states.texture = m_anim.getTexture();
+    }
 
     target.draw(m_vertices , states);
 }
@@ -82,10 +88,13 @@ void Particle::update(float dt){
 
 void Particle::setAnimation(Animation & animation){
     m_anim = animation;
-    setTexture(m_anim.getTexture());
     auto r = m_anim.getTextRect();
     setTextPos(sf::Vector2f(r.getPosition()) , sf::Vector2f(r.getPosition()+r.getSize()));
     m_textState = TextState::ANIMATION;
+}
+
+const sf::Vector2f & Particle::getPosition() const {
+    return m_position;
 }
 
 /////// PARTICLE SYSTEM ///////
@@ -100,6 +109,8 @@ ParticleSystem::ParticleSystem(sf::Vector2f startpos){
     setRange("offsetX" , 0 , 0);
     setRange("offsetY" , 0 , 0);
     m_textState = TextState::TEXTURE;
+    m_light = sf::CircleShape();
+    m_light.setScale(sf::Vector2f(3,3));
 }
 
 void ParticleSystem::setPosition(const sf::Vector2f & position){
@@ -171,12 +182,49 @@ void ParticleSystem::update(float dt){
     }
 }
 
+void ParticleSystem::clear(){
+    m_particles.clear();
+}
+
 void ParticleSystem::setContinuous(bool state){
     m_continuous = state;
 }
 
-void ParticleSystem::display(sf::RenderTarget & target , sf::View view) const{
+void ParticleSystem::setLightRadius(float radius){
+    m_light.setRadius(radius);
+}
+
+void ParticleSystem::setLightColor(sf::Color color){
+    m_light.setFillColor(color);
+}
+
+void ParticleSystem::spawnParticles(unsigned int n){
+    for (int i = 0; i < n; i++)
+    {
+        auto a = Random::randFloat(m_urdfs["angle"])*((float)M_PI/180.f);
+        auto s = Random::randFloat(m_urdfs["speed"]);
+        auto d = Random::randFloat(m_urdfs["duration"]);
+        auto offX = Random::randFloat(m_urdfs["offsetX"]);
+        auto offY = Random::randFloat(m_urdfs["offsetY"]);
+
+        Particle particle{m_position+sf::Vector2f{offX , offY} , {std::cos(a) , -std::sin(a)} , s , d};
+        particle.setAnimation(m_anim);
+        m_particles.push_back(particle);
+    }
+    
+}
+
+void ParticleSystem::display(sf::RenderTarget & target , sf::View view) {
+    sf::BlendMode b {};
+    b.alphaEquation = sf::BlendMode::Add;
+    sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
+    auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     for(auto & particle : m_particles){
+        auto pos = particle.getPosition();
+        sf::Vector2f p = (pos-sf::Vector2f{m_light.getRadius(),m_light.getRadius()}-view.getCenter()+view.getSize()*0.5f);
+        m_light.setPosition({p.x*zoom.x , p.y*zoom.y});
+        m_light.setScale(zoom);
+        target.draw(m_light , sf::BlendAdd);
         particle.display(target , view);
     }
 }

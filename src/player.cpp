@@ -68,9 +68,9 @@ void Player::die(){
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
     m_jumping = false;
     m_alive = false;
-    m_anim = &m_assets.getAnimation("idle");
+    m_anim = &m_assets->getAnimation("idle");
     m_anim->reset();
-    m_texture = &m_anim->getTexture();
+    m_texture = m_anim->getTexture();
     m_state = State::NORMAL;
     m_textState = TextState::ANIMATION;
     setSize({7 , 13});
@@ -83,24 +83,37 @@ void Player::die(){
         s.setColor(sf::Color::White);
         m_sparks.push_back(s);
     }
+    m_pSys.setAnimation(m_assets->getAnimation("particle"));
     m_pSys.setContinuous(false);
+    m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
+    m_pSys.setRange("speed" , 100 , 150);
+    m_pSys.setRange("angle" , 0 , 360);
+    m_pSys.setRange("duration" , 2.5 , 2.5);
+    m_pSys.setRange("offsetX" , 0 , 0);
+    m_pSys.spawnParticles(25);
+    m_pSys.setRange("speed" , 5 , 8);
+    m_pSys.setRange("angle" , -90 , -90);
+    m_pSys.setRange("duration" , 2.6 , 2.6);
+    m_pSys.setRange("offsetX" , -4 , 4);
+    m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
 }
 
-void Player::respawn(){
+void Player::respawn(sf::Vector2f pos){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
-    m_anim = &m_assets.getAnimation("idle");
+    m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});
     setTextSize({13 , 17});
-    setPosition({390 , 48});
+    setPosition(pos);
     m_anim->reset();
-    m_texture = &m_anim->getTexture();
+    m_texture = m_anim->getTexture();
     m_textOffset = sf::Vector2f(3,3);
     m_textState = TextState::ANIMATION;
     m_state = State::NORMAL;
     m_jumping = false;
     m_alive = true;
     m_rotation = 0.f;
+    m_pSys.clear();
 }
 
 const sf::FloatRect Player::getRect() const {
@@ -113,6 +126,42 @@ const sf::FloatRect Player::getRect() const {
 
 bool Player::isAlive() const {
     return m_alive;
+}
+
+void Player::changeState() {
+    if(m_state == State::SOUL){
+        m_state = State::NORMAL;
+        resetTextCoords();
+        setTextSize({13,17});
+        setTextOffset({3,3});
+        m_pSys.setContinuous(false);
+        m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
+        m_pSys.setRange("speed" , 5 , 20);
+        m_pSys.setRange("angle" , 0 , 360);
+        m_pSys.setRange("duration" , 0.5f , 0.8f);
+        m_pSys.setRange("offsetX" , 0 , 0);
+        m_pSys.spawnParticles(25);
+        m_pSys.setRange("speed" , 5 , 8);
+        m_pSys.setRange("angle" , -90 , -90);
+        m_pSys.setRange("duration" , 2.6 , 2.6);
+        m_pSys.setRange("offsetX" , -4 , 4);
+    } else {
+        m_state = State::SOUL;
+        resetTextCoords();
+        setTextSize({9,9});
+        setTextOffset({1,-2});
+        m_pSys.setContinuous(true);
+        m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
+        m_pSys.setRange("speed" , 5 , 20);
+        m_pSys.setRange("angle" , 0 , 360);
+        m_pSys.setRange("duration" , 0.5f , 0.8f);
+        m_pSys.setRange("offsetX" , 0 , 0);
+        m_pSys.spawnParticles(25);
+        m_pSys.setRange("speed" , 5 , 8);
+        m_pSys.setRange("angle" , -90 , -90);
+        m_pSys.setRange("duration" , 2.6 , 2.6);
+        m_pSys.setRange("offsetX" , -4 , 4);
+    }
 }
 
 void Player::events(sf::Event & event , sf::Window & window , float dt){
@@ -148,19 +197,7 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
             }
 
             if(event.key.code == sf::Keyboard::Z){
-                if(m_state == State::SOUL){
-                    m_state = State::NORMAL;
-                    resetTextCoords();
-                    setTextSize({13,17});
-                    setTextOffset({3,3});
-                    m_pSys.setContinuous(false);
-                } else {
-                    m_state = State::SOUL;
-                    resetTextCoords();
-                    setTextSize({9,9});
-                    setTextOffset({1,-2});
-                    m_pSys.setContinuous(true);
-                }
+                changeState();
             }
             break;
         
@@ -181,30 +218,32 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
     }
 }
 
-Player::Player(){
+Player::Player(AssetManager* assets){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
     m_jumpAmount = 1.75f;
     m_gravity = 3.f;
-    m_assets = AssetManager();
-    m_assets.loadFromFile("../assets/player_assets.json");
-    m_anim = &m_assets.getAnimation("idle");
+    m_assets = assets;
+    m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});
     setOrigin({5,7});
     setTextSize({13 , 17});
-    m_texture = &m_anim->getTexture();
+    m_texture = m_anim->getTexture();
     m_textOffset = sf::Vector2f(3,3);
     m_textState = TextState::ANIMATION;
     m_state = State::NORMAL;
     m_jumping = false;
     m_alive = true;
-    m_pSys.setAnimation(m_assets.getAnimation("particle"));
+    m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
     m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
     m_pSys.setRange("speed" , 5 , 8);
     m_pSys.setRange("angle" , -90 , -90);
-    m_pSys.setRange("duration" , 1 , 2);
-    m_pSys.setSpawnRate(.1f);
+    m_pSys.setRange("duration" , 2.6 , 2.6);
+    m_pSys.setSpawnRate(.15f);
     m_pSys.setRange("offsetX" , -4 , 4);
+    m_pSys.setLightColor(sf::Color(3 , 6 , 12));
+    m_pSys.setLightRadius(7);
+    m_pSys.setContinuous(false);
 }
 
 void Player::collisions(const std::vector<sf::FloatRect> & colliders , sf::View & view){
@@ -285,7 +324,7 @@ void Player::postUpdate(float dt){
         }
         resetTextCoords();
         m_textState = TextState::TEXTURE;
-        m_texture = &m_assets.getTexture("soul");
+        m_texture = &m_assets->getTexture("soul");
         return;
     }
 
@@ -296,7 +335,7 @@ void Player::postUpdate(float dt){
         }
         resetTextCoords();
         m_textState = TextState::TEXTURE;
-        m_texture = &m_assets.getTexture("jumping");
+        m_texture = &m_assets->getTexture("jumping");
     } else {
         m_textState = TextState::ANIMATION;
     }
@@ -304,13 +343,13 @@ void Player::postUpdate(float dt){
     if(m_textState == TextState::ANIMATION && m_airtime < 3){
         if(m_collisionSide["right"] || m_collisionSide["left"] || (std::abs(m_velocity.x) < 0.01)){
             if(!m_anim || m_anim->name != "idle"){
-                m_anim = &m_assets.getAnimation("idle");
-                m_texture = &m_anim->getTexture();
+                m_anim = &m_assets->getAnimation("idle");
+                m_texture = m_anim->getTexture();
             }
         } else if(std::abs(m_velocity.x) > 0.01){
             if(!m_anim || m_anim->name != "running"){
-                m_anim = &m_assets.getAnimation("running");
-                m_texture = &m_anim->getTexture();
+                m_anim = &m_assets->getAnimation("running");
+                m_texture = m_anim->getTexture();
             }
         }
     }
@@ -321,7 +360,7 @@ void Player::postUpdate(float dt){
     }
 }
 
-void Player::display(sf::RenderWindow & window , sf::View view , unsigned int to_draw) const{
+void Player::display(sf::RenderWindow & window , sf::View view , unsigned int to_draw){
     
     switch(to_draw){
         case 0:

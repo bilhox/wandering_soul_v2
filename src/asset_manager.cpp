@@ -52,6 +52,8 @@ bool AssetManager::load(std::string name , std::string path){
     
         if(!animation.load(path))
             return false;
+        
+        animation.setTexture(getTexture(animation.getName()));
 
         animation.name = name;
         m_animations[name] = animation;

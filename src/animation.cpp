@@ -33,12 +33,7 @@ bool Animation::load(std::string anim_path) {
 
     nlohmann::json animFile = nlohmann::json::parse(fs);
 
-    auto sourcePath = std::filesystem::path(anim_path);
-    sourcePath.replace_filename(animFile["source"]);
-
-    if(!m_sheet.loadFromFile(sourcePath.string())){
-        return false;
-    }
+    m_srcName = animFile["source"];
 
     auto slice = animFile["slice"].get<std::vector<unsigned int>>();
     m_slice = {slice[0] , slice[1]};
@@ -94,6 +89,14 @@ sf::IntRect Animation::getTextRect(){
     return sf::IntRect{sf::Vector2i{m_currentIndex*m_slice.x , 0},sf::Vector2i(m_slice)};
 }
 
-sf::Texture & Animation::getTexture() {
+void Animation::setTexture(sf::Texture & texture){
+    m_sheet = &texture;
+}
+
+sf::Texture* Animation::getTexture() {
     return m_sheet;
+}
+
+const std::string & Animation::getName() const {
+    return m_srcName;
 }

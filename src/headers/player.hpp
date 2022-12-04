@@ -11,17 +11,18 @@
 class Player : public Entity {
 
     public:
-        Player();
+        Player(AssetManager* assets);
         void update(float dt);
         void events(sf::Event & event , sf::Window & window , float dt);
         void collisions(const std::vector<sf::FloatRect> & colliders , sf::View & view);
         const sf::FloatRect getRect() const;
         bool isSoul() const;
-        void respawn();
+        void respawn(sf::Vector2f pos);
         void die();
         bool isAlive() const;
         void postUpdate(float dt);
-        void display(sf::RenderWindow & window , sf::View view , unsigned int to_draw = 0) const;
+        void display(sf::RenderWindow & window , sf::View view , unsigned int to_draw = 0) ;
+        void changeState();
     
     private:
 
@@ -41,7 +42,7 @@ class Player : public Entity {
         int m_airtime;
         TextState m_textState;
         bool m_jumping;
-        AssetManager m_assets;
+        AssetManager* m_assets;
         Animation* m_anim;
         ParticleSystem m_pSys {{0,0}};
         std::vector<Spark> m_sparks;

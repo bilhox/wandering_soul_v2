@@ -1,4 +1,5 @@
 #include "headers/entity.hpp"
+#include "headers/utils.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -67,12 +68,14 @@ void Entity::display(sf::RenderWindow & window , sf::View view) const {
 
 void Entity::draw(sf::RenderTarget & target , sf::View view) const {
     sf::RenderStates states;
+    sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
+    auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     auto translation = getPosition()+sf::Vector2f((m_flip)?m_textSize.x:0,0)-m_textOffset-view.getCenter()+view.getSize()*0.5f;
-    translation.x = std::round(translation.x*3.f);
-    translation.y = std::round(translation.y*3.f);
+    translation.x = std::round(translation.x*zoom.x);
+    translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
-    transform.scale(sf::Vector2f((m_flip)?-3:3,3));
+    transform.scale(sf::Vector2f(((m_flip)?-1:1)*zoom.x,zoom.y));
     auto origin = getOrigin();
     transform.rotate(m_rotation , origin.x , origin.y);
     states.transform = transform;

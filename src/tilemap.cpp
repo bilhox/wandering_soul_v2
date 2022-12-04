@@ -1,6 +1,5 @@
 #include "headers/tilemap.hpp"
 #include "headers/utils.hpp"
-#include "headers/json.hpp"
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
@@ -54,7 +53,7 @@ bool Tilemap::load(std::string tmx_path){
     m_tmSize = sf::Vector2u(tmx_file["width"] , tmx_file["height"]);
     m_tileSize = sf::Vector2u(tmx_file["tilewidth"] , tmx_file["tileheight"]);
 
-    // std::cout << tmx_tree.root[2][0].tag << std::endl;
+    // std::cout << m_tmSize.x << " ; " << m_tmSize.y << std::endl;
     auto layers = tmx_file["layers"];
     int l = -1;
     for(auto layer : layers){
@@ -74,6 +73,10 @@ bool Tilemap::load(std::string tmx_path){
                         obj.rect.top = object["y"];
                         obj.rect.width = object["width"];
                         obj.rect.height = object["height"];
+                        if(object.contains("properties")){
+                            obj.properties = object["properties"];
+                        }
+
                         m_objects[object["name"]] = obj;
                     }
                 }
@@ -87,11 +90,12 @@ bool Tilemap::load(std::string tmx_path){
         l++;
 
 
-        for (int i = 0; i < m_tmSize.y; i++)
+        for (int j = 0; j < m_tmSize.y; j++)
         {
-            for (int j = 0; j < m_tmSize.x; j++)
+            for (int i = 0; i < m_tmSize.x; i++)
             {
                 int tileNumber = m_layer_datas[l][i + j * m_tmSize.x];
+                // std::cout << tileNumber << " ";
                 if(!tileNumber){
                     continue;
                 }
@@ -113,7 +117,7 @@ bool Tilemap::load(std::string tmx_path){
 
                 m_layers[l].push_back(tile);
             }
-            
+
         }
     
     }
@@ -122,12 +126,14 @@ bool Tilemap::load(std::string tmx_path){
 
 void Tilemap::draw(sf::RenderTarget & target , sf::View view) const {
     sf::RenderStates states {};
+    sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
+    auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     auto translation = getPosition()-view.getCenter()+view.getSize()*0.5f;
-    translation.x = std::round(translation.x*3.f);
-    translation.y = std::round(translation.y*3.f);
+    translation.x = std::round(translation.x*zoom.x);
+    translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
-    transform.scale(sf::Vector2f(3,3));
+    transform.scale(sf::Vector2f(zoom.x,zoom.y));
     states.transform = transform;
     states.texture = &m_tileset;
 

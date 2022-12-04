@@ -1,4 +1,5 @@
 #include "headers/spark.hpp"
+#include "./headers/utils.hpp"
 #include <cmath>
 
 const sf::Vector2f & Spark::getPosition() const {
@@ -48,12 +49,14 @@ void Spark::update(float dt){
 
 void Spark::draw(sf::RenderTarget & target , sf::View view) const {
     sf::RenderStates states;
+    sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
+    auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     auto translation = getPosition()-view.getCenter()+view.getSize()*0.5f;
-    translation.x = std::round(translation.x*3.f);
-    translation.y = std::round(translation.y*3.f);
+    translation.x = std::round(translation.x*zoom.x);
+    translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
-    transform.scale(sf::Vector2f(3,3));
+    transform.scale(sf::Vector2f(zoom.x,zoom.y));
     states.transform = transform;
     states.texture = nullptr;
 
