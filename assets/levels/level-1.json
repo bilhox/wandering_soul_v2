@@ -573,7 +573,7 @@
                  "y":224
                 }, 
                 {
-                 "height":32,
+                 "height":16,
                  "id":95,
                  "name":"door",
                  "properties":[
@@ -592,7 +592,7 @@
                  "visible":true,
                  "width":16,
                  "x":800,
-                 "y":112
+                 "y":128
                 }],
          "opacity":1,
          "type":"objectgroup",

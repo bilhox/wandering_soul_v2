@@ -27,6 +27,10 @@
         {
             "name":"door",
             "source":"./images/door.png"
+        },
+        {
+            "name":"projectile",
+            "source":"./images/projectile.png"
         }
     ],
     "animations":[

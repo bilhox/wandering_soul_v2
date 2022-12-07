@@ -1,6 +1,7 @@
 #include "headers/utils.hpp"
 #include <algorithm>
 
+
 std::vector<std::string> split (std::string str, std::string delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     std::string token;
@@ -41,4 +42,33 @@ bool overlaps(const sf::FloatRect & rect1 , const sf::FloatRect & rect2){
 
 sf::Vector2f operator/(const sf::Vector2f& vec1 , const float& x){
     return {vec1.x/x , vec1.y/x};
+}
+
+EntityData instanciateProjectile(sf::Texture & texture){
+    Entity projectile{};
+    projectile.setTexture(texture);
+    projectile.setSize({5,5});
+    projectile.setTextSize({5,5});
+    projectile.setTextOffset({2,2});
+    projectile.resetTextCoords();
+    EntityData entData;
+    entData.movement = {-1.f , 0};
+    entData.projectile = projectile;
+    return entData;
+}
+
+Door instanciateDoor(sf::Texture & texture){
+    Entity door{};
+    door.setTexture(texture);
+    door.setSize({8,16});
+    door.setTextSize({16,16});
+    door.setTextOffset({4,0});
+    door.resetTextCoords();
+    Door d;
+    d.door = door;
+    return d;
+}
+
+sf::Vector2f operator*(const sf::Vector2f& vec1 , const sf::Vector2f& vec2){
+    return {vec1.x*vec2.x,vec1.y*vec2.y};
 }

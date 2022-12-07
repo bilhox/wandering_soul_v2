@@ -172,14 +172,16 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
     switch(event.type){
 
         case sf::Event::KeyPressed:
-            if(event.key.code == sf::Keyboard::Right){
+            if(m_ableToMove){
+                if(event.key.code == sf::Keyboard::Right){
                 m_keys["right"] = true;
-            } else if(event.key.code == sf::Keyboard::Left){
-                m_keys["left"] = true;
-            } else if(event.key.code == sf::Keyboard::Up){
-                m_keys["up"] = true;
-            } else if(event.key.code == sf::Keyboard::Down){
-                m_keys["down"] = true;
+                } else if(event.key.code == sf::Keyboard::Left){
+                    m_keys["left"] = true;
+                } else if(event.key.code == sf::Keyboard::Up){
+                    m_keys["up"] = true;
+                } else if(event.key.code == sf::Keyboard::Down){
+                    m_keys["down"] = true;
+                }
             }
 
             if (m_state == State::NORMAL && event.key.code == sf::Keyboard::Up){
@@ -202,19 +204,28 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
             break;
         
         case sf::Event::KeyReleased:
-            if(event.key.code == sf::Keyboard::Right){
+            if(m_ableToMove){
+                if(event.key.code == sf::Keyboard::Right){
                 m_keys["right"] = false;
-            } else if(event.key.code == sf::Keyboard::Left){
-                m_keys["left"] = false;
-            } else if(event.key.code == sf::Keyboard::Up){
-                m_keys["up"] = false;
-            } else if(event.key.code == sf::Keyboard::Down){
-                m_keys["down"] = false;
+                } else if(event.key.code == sf::Keyboard::Left){
+                    m_keys["left"] = false;
+                } else if(event.key.code == sf::Keyboard::Up){
+                    m_keys["up"] = false;
+                } else if(event.key.code == sf::Keyboard::Down){
+                    m_keys["down"] = false;
+                }
             }
             break;
 
         default:
             break;
+    }
+}
+
+void Player::setMovementAbility(bool state){
+    m_ableToMove = state;
+    if(!m_ableToMove){
+        m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
     }
 }
 
@@ -244,6 +255,7 @@ Player::Player(AssetManager* assets){
     m_pSys.setLightColor(sf::Color(3 , 6 , 12));
     m_pSys.setLightRadius(7);
     m_pSys.setContinuous(false);
+    m_ableToMove = true;
 }
 
 void Player::collisions(const std::vector<sf::FloatRect> & colliders , sf::View & view){

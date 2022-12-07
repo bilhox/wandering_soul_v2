@@ -23,6 +23,7 @@ class Player : public Entity {
         void postUpdate(float dt);
         void display(sf::RenderWindow & window , sf::View view , unsigned int to_draw = 0) ;
         void changeState();
+        void setMovementAbility(bool state);
     
     private:
 
@@ -48,5 +49,6 @@ class Player : public Entity {
         std::vector<Spark> m_sparks;
         State m_state;
         bool m_alive;
+        bool m_ableToMove;
 
 };

@@ -4,50 +4,16 @@
 #include "headers/tilemap.hpp"
 #include "headers/player.hpp"
 #include "headers/utils.hpp"
+#include "headers/enemy.hpp"
 #include <cmath>
 #include <random>
-
-struct EntityData{
-    Entity projectile;
-    sf::Vector2f movement;
-};
-
-struct Door{
-    Entity door;
-    std::string destination;
-    bool visible;
-};
-
-EntityData instanciateProjectile(sf::Texture & texture){
-    Entity projectile{};
-    projectile.setTexture(texture);
-    projectile.setSize({5,5});
-    projectile.setTextSize({5,5});
-    projectile.setTextOffset({2,2});
-    projectile.resetTextCoords();
-    EntityData entData;
-    entData.movement = {-1.f , 0};
-    entData.projectile = projectile;
-    return entData;
-}
-
-Door instanciateDoor(sf::Texture & texture){
-    Entity door{};
-    door.setTexture(texture);
-    door.setSize({16,32});
-    door.setTextSize({16,32});
-    door.resetTextCoords();
-    Door d;
-    d.door = door;
-    return d;
-}
 
 int main()
 {
 
     auto map = Tilemap();
 
-    map.load("../assets/levels/level-1.json");
+    map.load("../assets/levels/level-3.json");
 
     sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
     auto window = sf::RenderWindow{ {(unsigned int) Const::ORIGINAL_WINSIZE.x , (unsigned int) Const::ORIGINAL_WINSIZE.y} , "XML parser test"};
@@ -61,7 +27,7 @@ int main()
 
     auto startPos = map.getObject("player_position");
     player.setPosition(startPos.rect.getPosition());
-    float death_time = 1.f;
+    float death_time = 2.f;
     float proj_spawn = 0.5f;
 
     sf::Clock clock{};
@@ -75,12 +41,12 @@ int main()
     auto dObj = map.getObject("door");
 
     auto door = instanciateDoor(assets.getTexture("door"));
-    door.door.setPosition(dObj.rect.getPosition());
+    door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f{4,0});
     door.destination = "../assets/levels/"+dObj.properties[0]["value"].get<std::string>();
     door.destination += ".json";
     door.visible = dObj.properties[1]["value"].get<bool>();
 
-    int level = 1;
+    int level = 3;
 
     std::vector<Spark> sparks;
 
@@ -97,6 +63,7 @@ int main()
     float transition_time = 0.f;
     float lspt = 0.f;
     bool transition = false;
+    bool level_finished = false;
 
     sf::VertexArray black_filter;
     black_filter.resize(4);
@@ -106,7 +73,7 @@ int main()
 
     pSys.setAnimation(assets.getAnimation("player_particle"));
     pSys.setContinuous(false);
-    pSys.setRange("speed" , 5 , 20);
+    pSys.setRange("speed" , 20 , 40);
     pSys.setRange("angle" , 0 , 360);
     pSys.setRange("duration" , 0.5f , 0.8f);
     pSys.setRange("offsetX" , 0 , 0);
@@ -116,6 +83,9 @@ int main()
         vertex.position = sf::Vector2f((i%2)*900.f , (i/2)*600.f);
         vertex.color = sf::Color(0,0,0,0);
     }
+
+    Eye eye {&assets};
+    eye.setPosition({324 , 331});
 
     while (window.isOpen())
     {
@@ -172,37 +142,36 @@ int main()
 
         if(level == 2){
 
-            if(game_timer > 30.f){
-                if(game_timer < 40.f){
-                    if(lspt == 0.f){
-                        int dir = Random::randInt(urdi(0 , 1));
-                        for(int i = 0;i < 22;i++){
-                            sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
-                            auto entData = instanciateProjectile(proj);
-                            auto pp = sf::Vector2f{(!dir)?camRect.left+camRect.width:camRect.left,(!dir)?0:20+(((float)(map.getSize().y*map.getTileSize().y) / 20.f)*i)};
-                            entData.projectile.setPosition(pp);
-                            entData.movement = sf::Vector2f((!dir)?-1:1 , 0)*50.f;
-                            projectiles.push_back(entData);
-                            for(int i = 0;i < 6 ;i++){
-                                float sp = Random::randFloat(urdf(200,250));
-                                float sc = Random::randFloat(urdf(8.f,10.5f));
-                                float ang = Random::randFloat(urdf(-30,30));
-                                Spark s {{pp.x,pp.y},(float)(M_PI/180.f)*(ang+(!dir)?180:0),sp,sc,sp/100.f};
-                                s.setColor(sf::Color::Black);
-                                sparks.push_back(s);
-                            }
+            if(game_timer > 30.f && game_timer < 40.f){
+                if(lspt == 0.f){
+                    int dir = Random::randInt(urdi(0 , 1));
+                    for(int i = 0;i < 22;i++){
+                        sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
+                        auto entData = instanciateProjectile(proj);
+                        auto pp = sf::Vector2f{(dir)?(0):((float)(map.getSize().x*map.getTileSize().x)),((dir)?0:20)+(((float)(map.getSize().y*map.getTileSize().y) / 20.f)*i)};
+                        entData.projectile.setPosition(pp);
+                        entData.movement = sf::Vector2f((dir)?1:-1 , 0)*50.f;
+                        projectiles.push_back(entData);
+                        for(int i = 0;i < 6 ;i++){
+                            float sp = Random::randFloat(urdf(150,200));
+                            float sc = Random::randFloat(urdf(5.5f,7.5f));
+                            float ang = Random::randFloat(urdf(-30,30));
+                            Spark s {{(dir)?(camRect.left):camRect.left+camRect.width,pp.y},(float)(M_PI/180.f)*(ang+(dir)?0:180),(dir)?sp:-sp,sc,sp/100.f};
+                            s.setColor(sf::Color::Black);
+                            sparks.push_back(s);
                         }
                     }
-                    lspt += dt;
-                    if(lspt > 2.f)
-                        lspt = 0.f;
-                } else {
-                    door.visible = true;
-                    pSys.spawnParticles(25);
-                    pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
-                    game_timer = 0.f;
                 }
+                lspt += dt;
+                if(lspt > 1.f)
+                    lspt = 0.f;
+            } else if (game_timer > 45.f && !level_finished) {
+                door.visible = true;
+                pSys.spawnParticles(25);
+                level_finished = true;
+                pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
             }
+            
         }
 
 
@@ -218,12 +187,15 @@ int main()
                 projectiles.clear();
                 auto dObj = map.getObject("door");
 
-                door.door.setPosition(dObj.rect.getPosition());
+                door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f(4,0));
                 door.destination = "../assets/levels/"+dObj.properties[0]["value"].get<std::string>();
                 door.destination += ".json";
                 door.visible = dObj.properties[1]["value"].get<bool>();
                 transition = false;
                 projSpawning = true;
+                level_finished = false;
+                player.setMovementAbility(true);
+                mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
             }
         } else if (transition_time > 0.f){
             transition_time -= dt;
@@ -236,9 +208,11 @@ int main()
         }
 
         player.update(dt);
-        if(!transition)
-            player.collisions(map.getColliders() , camera);
+        player.collisions(map.getColliders() , camera);
         player.postUpdate(dt);
+
+        eye.update(dt , projectiles , player.getPosition());
+        eye.updatePupil(player.getPosition());
 
         if(level == 1 && player.isAlive() && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
             for(int i = 0;i < 22;i++){
@@ -334,7 +308,7 @@ int main()
                     proj_spawn = 0.3f;
                 }
                 else if (level == 3){
-                    proj_spawn = 0.35f;
+                    proj_spawn = 0.2f;
                 }
                 for(int i = 0;i < 6 ;i++){
                     float sp = Random::randFloat(urdf(150,200));
@@ -351,6 +325,7 @@ int main()
             transition = true;
             level += 1;
             game_timer = 0.f;
+            player.setMovementAbility(false);
         }
 
 
@@ -358,6 +333,8 @@ int main()
         map.display(window , camera , 0);
         if(door.visible)
             door.door.display(window , camera);
+        if(level == 3)
+            eye.display(window , camera);
         if(!player.isSoul())
             player.display(window , camera , 0);
         map.display(window , camera , 1);
