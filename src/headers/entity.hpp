@@ -15,10 +15,13 @@ class Entity : public sf::Transformable {
         void setSize(sf::Vector2f size);
         void setTextSize(sf::Vector2f size);
         void setTextOffset(sf::Vector2f offset);
+        const sf::Vector2f & getTextOffset() const;
         const sf::FloatRect & getRect() const;
         void resetTextCoords();
         sf::Vector2f getSize() const;
-        void display(sf::RenderWindow & window , sf::View view) const;
+        void setLightRadius(float radius);
+        void setLightColor(sf::Color color);
+        void display(sf::RenderWindow & window , sf::View view) ;
 
     protected:
 
@@ -29,10 +32,11 @@ class Entity : public sf::Transformable {
         sf::Texture* m_texture = nullptr;
         sf::Vector2f m_textOffset;
         sf::Vector2f m_textSize;
+        sf::CircleShape m_light;
         float m_rotation;
         bool m_flip;
 
     private:
 
-        void draw(sf::RenderTarget & target , sf::View view) const;
+        void draw(sf::RenderTarget & target , sf::View view) ;
 };

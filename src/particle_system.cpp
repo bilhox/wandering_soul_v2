@@ -111,6 +111,7 @@ ParticleSystem::ParticleSystem(sf::Vector2f startpos){
     m_textState = TextState::TEXTURE;
     m_light = sf::CircleShape();
     m_light.setScale(sf::Vector2f(3,3));
+    m_light.setFillColor(sf::Color{0,0,0});
 }
 
 void ParticleSystem::setPosition(const sf::Vector2f & position){
@@ -215,8 +216,6 @@ void ParticleSystem::spawnParticles(unsigned int n){
 }
 
 void ParticleSystem::display(sf::RenderTarget & target , sf::View view) {
-    sf::BlendMode b {};
-    b.alphaEquation = sf::BlendMode::Add;
     sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
     auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     for(auto & particle : m_particles){
@@ -224,7 +223,7 @@ void ParticleSystem::display(sf::RenderTarget & target , sf::View view) {
         sf::Vector2f p = (pos-sf::Vector2f{m_light.getRadius(),m_light.getRadius()}-view.getCenter()+view.getSize()*0.5f);
         m_light.setPosition({p.x*zoom.x , p.y*zoom.y});
         m_light.setScale(zoom);
-        target.draw(m_light , sf::BlendAdd);
         particle.display(target , view);
+        target.draw(m_light , sf::BlendAdd);
     }
 }

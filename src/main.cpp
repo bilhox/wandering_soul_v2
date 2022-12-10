@@ -56,7 +56,8 @@ int main()
     float dtAvg = 0.f;
     int tick = 0;
 
-    bool projSpawning = false;
+    bool projSpawning = true;
+    bool invincible = true;
     float slowTime = 0.f;
     float zoomTime = 1.2f;
     float game_timer = 0.f;
@@ -73,10 +74,12 @@ int main()
 
     pSys.setAnimation(assets.getAnimation("player_particle"));
     pSys.setContinuous(false);
-    pSys.setRange("speed" , 20 , 40);
+    pSys.setRange("speed" , 80 , 120);
     pSys.setRange("angle" , 0 , 360);
-    pSys.setRange("duration" , 0.5f , 0.8f);
+    pSys.setRange("duration" , 0.6f , 1.2f);
     pSys.setRange("offsetX" , 0 , 0);
+    pSys.setLightRadius(7.f);
+    pSys.setLightColor(sf::Color(3 , 6 , 12));
 
     for(int i = 0;i < black_filter.getVertexCount();i++){
         sf::Vertex & vertex = black_filter[i];
@@ -84,8 +87,12 @@ int main()
         vertex.color = sf::Color(0,0,0,0);
     }
 
-    Eye eye {&assets};
-    eye.setPosition({324 , 331});
+    Eye eye {&assets , projectiles};
+    eye.player = &player;
+    eye.setPosition({324 , 365});
+    eye.setTargetPos(player.getPosition());
+
+    camera.setCenter((player.getPosition()+player.getSize()*.5f));
 
     while (window.isOpen())
     {
@@ -167,9 +174,9 @@ int main()
                     lspt = 0.f;
             } else if (game_timer > 45.f && !level_finished) {
                 door.visible = true;
+                pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
                 pSys.spawnParticles(25);
                 level_finished = true;
-                pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
             }
             
         }
@@ -192,7 +199,8 @@ int main()
                 door.destination += ".json";
                 door.visible = dObj.properties[1]["value"].get<bool>();
                 transition = false;
-                projSpawning = true;
+                if(level != 4)
+                    projSpawning = true;
                 level_finished = false;
                 player.setMovementAbility(true);
                 mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
@@ -211,7 +219,7 @@ int main()
         player.collisions(map.getColliders() , camera);
         player.postUpdate(dt);
 
-        eye.update(dt , projectiles , player.getPosition());
+        eye.update(dt);
         eye.updatePupil(player.getPosition());
 
         if(level == 1 && player.isAlive() && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
@@ -236,12 +244,39 @@ int main()
             player.changeState();
         }
 
+        if(level == 3 && eye.isDead() && !level_finished){
+            door.visible = true;
+
+            pSys.setAnimation(assets.getAnimation("particle"));
+            pSys.setRange("speed" , 100 , 150);
+            pSys.setRange("angle" , 0 , 360);
+            pSys.setRange("duration" , 2.f , 2.5f);
+            pSys.setRange("offsetX" , 0 , 0);
+            pSys.setPosition(eye.getPosition());
+            pSys.spawnParticles(40);
+
+            pSys.setAnimation(assets.getAnimation("player_particle"));
+            pSys.setRange("speed" , 80 , 120);
+            pSys.setRange("angle" , 0 , 360);
+            pSys.setRange("duration" , 0.6f , 1.2f);
+            pSys.setRange("offsetX" , 0 , 0);
+            pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
+            pSys.spawnParticles(25);
+            level_finished = true;
+            projSpawning = false;
+        }
+
         for(int i = projectiles.size() -1 ; i >= 0 ; i--){
             projectiles[i].projectile.move(projectiles[i].movement*dt);
             if(projSpawning && !transition){
-                if(player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
+                if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
                     player.die();
                     projectiles.clear();
+
+                    if(level == 3){
+                        eye.resetAttacks();
+                    } 
+
                     game_timer = 0.f;
                     if(level == 1){
                         projSpawning = false;
@@ -251,11 +286,10 @@ int main()
                     zoomTime = 0.f;
                     break;
                 }
-                
-                if(!projectiles[i].projectile.getRect().intersects(mapRect)){
+            }
+            if(!projectiles[i].projectile.getRect().intersects(mapRect)){
                     projectiles.erase(projectiles.begin()+i);
                 }
-            }
         }
 
         for(int i = sparks.size()-1;i >= 0;i--){
@@ -333,7 +367,7 @@ int main()
         map.display(window , camera , 0);
         if(door.visible)
             door.door.display(window , camera);
-        if(level == 3)
+        if(level == 3 && !eye.isDead())
             eye.display(window , camera);
         if(!player.isSoul())
             player.display(window , camera , 0);

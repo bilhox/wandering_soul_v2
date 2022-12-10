@@ -11,6 +11,9 @@ Entity::Entity(){
     m_flip = false;
     m_rotation = 0.f;
     setOrigin({0,0});
+    m_light = sf::CircleShape();
+    m_light.setScale(sf::Vector2f(3,3));
+    m_light.setFillColor(sf::Color{0,0,0});
 }
 
 void Entity::setPosition(const sf::Vector2f & position){
@@ -62,11 +65,23 @@ void Entity::resetTextCoords(){
     }
 }
 
-void Entity::display(sf::RenderWindow & window , sf::View view) const {
+void Entity::display(sf::RenderWindow & window , sf::View view)  {
     draw(window , view);
 }
 
-void Entity::draw(sf::RenderTarget & target , sf::View view) const {
+const sf::Vector2f & Entity::getTextOffset() const {
+    return m_textOffset;
+}
+
+void Entity::setLightRadius(float radius){
+    m_light.setRadius(radius);
+}
+
+void Entity::setLightColor(sf::Color color){
+    m_light.setFillColor(color);
+}
+
+void Entity::draw(sf::RenderTarget & target , sf::View view) {
     sf::RenderStates states;
     sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
     auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
@@ -81,7 +96,12 @@ void Entity::draw(sf::RenderTarget & target , sf::View view) const {
     states.transform = transform;
     states.texture = &*m_texture;
 
+    sf::Vector2f p = (getPosition()-sf::Vector2f{m_light.getRadius(),m_light.getRadius()}-view.getCenter()+view.getSize()*0.5f);
+    m_light.setPosition({p.x*zoom.x , p.y*zoom.y});
+    m_light.setScale(zoom);
+
     target.draw(m_vertices , states);
+    target.draw(m_light , sf::BlendAdd);
 }
 
 sf::Vector2f Entity::getSize() const {
