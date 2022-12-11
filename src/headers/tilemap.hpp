@@ -29,7 +29,7 @@ class Tilemap : public sf::Transformable {
 
     private:
 
-        std::vector<std::vector<std::array<sf::Vertex , 4>>> m_layers;
+        std::vector<sf::VertexArray> m_layers;
         sf::Texture m_tileset;
         sf::Vector2u m_tileSize;
         sf::Vector2u m_tmSize;

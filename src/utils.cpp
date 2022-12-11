@@ -51,8 +51,8 @@ EntityData instanciateProjectile(sf::Texture & texture){
     projectile.setTextSize({5,5});
     projectile.setTextOffset({2,2});
     projectile.resetTextCoords();
-    projectile.setLightRadius(7.f);
-    projectile.setLightColor(sf::Color{10,2,5});
+    projectile.setLightRadius(9.f);
+    projectile.setLightColor(sf::Color{16,5,8});
     EntityData entData;
     entData.movement = {-1.f , 0};
     entData.projectile = projectile;

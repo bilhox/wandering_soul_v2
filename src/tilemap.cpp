@@ -86,9 +86,11 @@ bool Tilemap::load(std::string tmx_path){
         auto layer_data = layer["data"].get<std::vector<unsigned int>>();
 
         m_layer_datas.push_back(layer_data);
-        m_layers.push_back({});
         l++;
-
+        
+        sf::VertexArray vlayer;
+        vlayer.resize(6*m_tmSize.x*m_tmSize.y);
+        vlayer.setPrimitiveType(sf::Triangles);
 
         for (int j = 0; j < m_tmSize.y; j++)
         {
@@ -103,24 +105,31 @@ bool Tilemap::load(std::string tmx_path){
                 int tu = (tileNumber-1) % (m_tileset.getSize().x / 16);
                 int tv = (tileNumber-1) / (m_tileset.getSize().x / 16);
 
-                std::array<sf::Vertex , 4> tile {};
+                sf::Vertex* tile = &vlayer[(i + j * m_tmSize.x) * 6];
 
                 tile[0].position = sf::Vector2f(i * 16, j * 16);
                 tile[1].position = sf::Vector2f((i + 1) * 16, j * 16);
                 tile[2].position = sf::Vector2f(i * 16, (j + 1) * 16);
-                tile[3].position = sf::Vector2f((i+1) * 16, (j + 1) * 16);
+
+                tile[3].position = sf::Vector2f((i + 1) * 16, j * 16);
+                tile[4].position = sf::Vector2f(i * 16, (j + 1) * 16);
+                tile[5].position = sf::Vector2f((i + 1) * 16, (j + 1) * 16);
 
                 tile[0].texCoords = sf::Vector2f(tu * 16, tv * 16);
                 tile[1].texCoords = sf::Vector2f((tu + 1) * 16, tv * 16);
                 tile[2].texCoords = sf::Vector2f(tu * 16, (tv + 1) * 16);
-                tile[3].texCoords = sf::Vector2f((tu+1) * 16, (tv + 1) * 16);
 
-                m_layers[l].push_back(tile);
+                tile[3].texCoords = sf::Vector2f((tu + 1) * 16, tv * 16);
+                tile[4].texCoords = sf::Vector2f(tu * 16, (tv + 1) * 16);
+                tile[5].texCoords = sf::Vector2f((tu + 1) * 16, (tv + 1) * 16);
             }
 
         }
+
+        m_layers.push_back(vlayer);
     
     }
+
     return true;
 }
 
@@ -139,14 +148,10 @@ void Tilemap::draw(sf::RenderTarget & target , sf::View view) const {
 
     if(m_LayerToDisplay == -1){
         for (auto & layer : m_layers){
-            for(auto & tile : layer){
-                target.draw(&tile[0] , tile.size() , sf::TriangleStrip , states);
-            }
+            target.draw(layer , states);
         }
     } else if (m_LayerToDisplay >= 0 && m_LayerToDisplay < m_layers.size()) {
-        for(auto & tile : m_layers[m_LayerToDisplay]){
-            target.draw(&tile[0] , tile.size() , sf::TriangleStrip , states);
-        }
+        target.draw(m_layers[m_LayerToDisplay] , states);
     }
 }
 
