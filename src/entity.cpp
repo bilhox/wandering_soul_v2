@@ -19,6 +19,7 @@ void Entity::setPosition(const sf::Vector2f & position){
     // {std::round(position.x) , std::round(position.y)}
     m_rect.left = position.x;
     m_rect.top = position.y;
+    setLightDatas({position.x , position.y , 0});
 }
 
 void Entity::update(float dt){
@@ -93,8 +94,12 @@ const sf::Vector2f & Entity::getTextOffset() const {
     return m_textOffset;
 }
 
-Light & Entity::getLight(){
-    return m_light;
+void Entity::setLightDatas(sf::Vector3f datas){
+    m_lightDatas = datas;
+}
+
+const sf::Vector3f & Entity::getLightDatas() const{
+    return m_lightDatas;
 }
 
 void Entity::draw(sf::RenderTarget & target , sf::View view) {

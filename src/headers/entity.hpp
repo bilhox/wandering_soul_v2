@@ -22,7 +22,8 @@ class Entity : public sf::Transformable {
         void resetTextCoords();
         void setTextPos(sf::Vector2f start , sf::Vector2f end);
         sf::Vector2f getSize() const;
-        Light & getLight();
+        void setLightDatas(sf::Vector3f datas);
+        const sf::Vector3f & getLightDatas() const;
         void display(sf::RenderWindow & window , sf::View view) ;
 
     protected:
@@ -35,7 +36,7 @@ class Entity : public sf::Transformable {
         AssetManager* m_assets;
         sf::Vector2f m_textOffset;
         sf::Vector2f m_textSize;
-        Light m_light;
+        sf::Vector3f m_lightDatas;
         float m_rotation;
         bool m_flip;
 

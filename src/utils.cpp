@@ -53,11 +53,8 @@ EntityData instanciateProjectile(AssetManager* assets){
     projectile.setTextSize({5,5});
     projectile.setTextOffset({2,2});
     projectile.resetTextCoords();
-    Light & light = projectile.getLight();
-    light.radius = 50.f;
-    light.position = projectile.getPosition();
-    light.color = {255.f , 255.f , 255.f};
-    light.intensity = 0.25f;
+    projectile.setLightDatas(sf::Vector3f(0,0,0));
+
 
     EntityData entData;
     entData.movement = {-1.f , 0};

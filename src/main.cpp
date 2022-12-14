@@ -8,6 +8,7 @@
 #include "headers/light.hpp"
 #include <cmath>
 #include <random>
+#include <array>
 
 int main()
 {
@@ -86,7 +87,8 @@ int main()
     }
 
     std::vector<EntityData> projectiles{};
-    std::vector<Light> lights{};
+    std::vector<sf::Vector3f> lights{};
+    // std::array<sf::Vector3f , 700> ls;
 
     // Eye enemy in level 3
 
@@ -136,6 +138,20 @@ int main()
         std::cout << "Failed to load fragment shader" << std::endl;
         return -1;
     }
+
+    // Define lights 
+
+    std::vector<Light> lightTypes;
+
+    Light light {};
+    light.radius = 5.f;
+    light.color = {255.f , 255.f , 255.f};
+    light.intensity = 0.25f;
+    lightTypes.push_back(light);
+
+    shader.setUniform("lights[0].radius" , light.radius);
+    shader.setUniform("lights[0].intensity" , light.intensity);
+    shader.setUniform("lights[0].color" , light.color);
 
     while (window.isOpen())
     {
@@ -202,7 +218,7 @@ int main()
                         entData.projectile.setPosition(pp);
                         entData.movement = sf::Vector2f((dir)?1:-1 , 0)*50.f;
                         projectiles.push_back(entData);
-                        lights.push_back(entData.projectile.getLight());
+                        lights.push_back(entData.projectile.getLightDatas());
                         for(int i = 0;i < 6 ;i++){
                             float sp = Random::randFloat(urdf(150,200));
                             float sc = Random::randFloat(urdf(5.5f,7.5f));
@@ -275,7 +291,7 @@ int main()
                 entData.projectile.setPosition(pp);
                 entData.movement = sf::Vector2f(-1 , 0)*50.f;
                 projectiles.push_back(entData);
-                lights.push_back(entData.projectile.getLight());
+                lights.push_back(entData.projectile.getLightDatas());
                 for(int i = 0;i < 6 ;i++){
                     float sp = Random::randFloat(urdf(200,250));
                     float sc = Random::randFloat(urdf(8.f,10.5f));
@@ -383,7 +399,7 @@ int main()
                 p.movement = sf::Vector2f{std::cos((float)(M_PI/180)*angle),std::sin((float)(M_PI/180)*angle)}*50.f;
                 p.projectile.setPosition({camRect.left+randXpos,camRect.top});
                 projectiles.push_back(p);
-                lights.push_back(p.projectile.getLight());
+                lights.push_back(p.projectile.getLightDatas());
                 if(level == 1){
                     proj_spawn = 0.5f;
                 }
@@ -432,12 +448,7 @@ int main()
             spark.draw(window , camera);
         }
 
-        for(int i = 0;i < lights.size();i++){
-            shader.setUniform("lights["+std::to_string(i)+"].position" , lights[i].position);
-            shader.setUniform("lights["+std::to_string(i)+"].radius" , lights[i].radius);
-            shader.setUniform("lights["+std::to_string(i)+"].intensity" , lights[i].intensity);
-            shader.setUniform("lights["+std::to_string(i)+"].color" , lights[i].color);
-        }
+        shader.setUniformArray("positions" , &lights[0] , lights.size());
 
         shader.setUniform("nLight" , (int)lights.size());
         shader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
