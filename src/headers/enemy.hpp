@@ -27,11 +27,12 @@ enum class AttackState{
 class Eye : public Entity {
 
     public:
-        std::vector<EntityData>* projectiles = nullptr;
         Player* player;
+        std::vector<EntityData>* projectiles;
+        std::vector<Light>* lights;
 
     public:
-        Eye(AssetManager* assets , std::vector<EntityData> & projectiles);
+        Eye(AssetManager* assets);
         void update(float dt) override;
         void updatePupil(const sf::Vector2f & player_pos);
         void display(sf::RenderWindow & window , sf::View view);

@@ -5,6 +5,7 @@
 #include "headers/player.hpp"
 #include "headers/utils.hpp"
 #include "headers/enemy.hpp"
+#include "headers/light.hpp"
 #include <cmath>
 #include <random>
 
@@ -36,11 +37,10 @@ int main()
     std::vector<sf::FloatRect> colliders{};
     
     sf::View camera {sf::FloatRect({0,0},{300 , 200})};
-    std::vector<EntityData> projectiles;
 
     auto dObj = map.getObject("door");
 
-    auto door = instanciateDoor(assets.getTexture("door"));
+    auto door = instanciateDoor(&assets);
     door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f{4,0});
     door.destination = "../assets/levels/"+dObj.properties[0]["value"].get<std::string>();
     door.destination += ".json";
@@ -78,8 +78,6 @@ int main()
     pSys.setRange("angle" , 0 , 360);
     pSys.setRange("duration" , 0.6f , 1.2f);
     pSys.setRange("offsetX" , 0 , 0);
-    pSys.setLightRadius(7.f);
-    pSys.setLightColor(sf::Color(3 , 6 , 12));
 
     for(int i = 0;i < black_filter.getVertexCount();i++){
         sf::Vertex & vertex = black_filter[i];
@@ -87,12 +85,57 @@ int main()
         vertex.color = sf::Color(0,0,0,0);
     }
 
-    Eye eye {&assets , projectiles};
+    std::vector<EntityData> projectiles{};
+    std::vector<Light> lights{};
+
+    // Eye enemy in level 3
+
+    Eye eye {&assets};
     eye.player = &player;
+    eye.projectiles = &projectiles;
+    eye.lights = &lights;
     eye.setPosition({324 , 365});
     eye.setTargetPos(player.getPosition());
 
     camera.setCenter((player.getPosition()+player.getSize()*.5f));
+
+    // Lightning system
+
+    sf::RenderTexture lrt;
+    lrt.create(300 , 200);
+    lrt.clear({0,0,0,0});
+
+    sf::VertexArray result;
+    result.resize(4);
+    result.setPrimitiveType(sf::TriangleStrip);
+
+    for(int i = 0;i < result.getVertexCount();i++){
+        sf::Vertex & vertex = result[i];
+        vertex.position = sf::Vector2f((i%2)*300.f , (i/2)*200.f);
+    }
+
+    sf::VertexArray lightRendering;
+    lightRendering.resize(4);
+    lightRendering.setPrimitiveType(sf::TriangleStrip);
+
+    for(int i = 0;i < lightRendering.getVertexCount();i++){
+        sf::Vertex & vertex = lightRendering[i];
+        vertex.position = sf::Vector2f((i%2)*900.f , (i/2)*600.f);
+    }
+
+    sf::Shader shader;
+
+    if (!sf::Shader::isAvailable())
+    {
+        std::cerr << "Shader are not available" << std::endl;
+        return -1;
+    }
+
+
+    if(!shader.loadFromFile("../assets/fragment.frag" , sf::Shader::Fragment)){
+        std::cout << "Failed to load fragment shader" << std::endl;
+        return -1;
+    }
 
     while (window.isOpen())
     {
@@ -154,11 +197,12 @@ int main()
                     int dir = Random::randInt(urdi(0 , 1));
                     for(int i = 0;i < 22;i++){
                         sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
-                        auto entData = instanciateProjectile(proj);
+                        auto entData = instanciateProjectile(&assets);
                         auto pp = sf::Vector2f{(dir)?(0):((float)(map.getSize().x*map.getTileSize().x)),((dir)?0:20)+(((float)(map.getSize().y*map.getTileSize().y) / 20.f)*i)};
                         entData.projectile.setPosition(pp);
                         entData.movement = sf::Vector2f((dir)?1:-1 , 0)*50.f;
                         projectiles.push_back(entData);
+                        lights.push_back(entData.projectile.getLight());
                         for(int i = 0;i < 6 ;i++){
                             float sp = Random::randFloat(urdf(150,200));
                             float sc = Random::randFloat(urdf(5.5f,7.5f));
@@ -192,6 +236,7 @@ int main()
                 map.load(door.destination);
                 player.respawn(map.getObject("player_position").rect.getPosition());
                 projectiles.clear();
+                lights.clear();
                 auto dObj = map.getObject("door");
 
                 door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f(4,0));
@@ -225,11 +270,12 @@ int main()
         if(level == 1 && player.isAlive() && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
             for(int i = 0;i < 22;i++){
                 sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
-                auto entData = instanciateProjectile(proj);
+                auto entData = instanciateProjectile(&assets);
                 auto pp = sf::Vector2f{camRect.left+camRect.width,(((float)(map.getSize().y*map.getTileSize().y) / 20.f)*i)};
                 entData.projectile.setPosition(pp);
                 entData.movement = sf::Vector2f(-1 , 0)*50.f;
                 projectiles.push_back(entData);
+                lights.push_back(entData.projectile.getLight());
                 for(int i = 0;i < 6 ;i++){
                     float sp = Random::randFloat(urdf(200,250));
                     float sc = Random::randFloat(urdf(8.f,10.5f));
@@ -272,6 +318,7 @@ int main()
                 if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
                     player.die();
                     projectiles.clear();
+                    lights.clear();
 
                     if(level == 3){
                         eye.resetAttacks();
@@ -289,6 +336,7 @@ int main()
             }
             if(!projectiles[i].projectile.getRect().intersects(mapRect)){
                     projectiles.erase(projectiles.begin()+i);
+                    lights.erase(lights.begin()+i);
                 }
         }
 
@@ -328,13 +376,14 @@ int main()
         if(projSpawning && !transition && player.isAlive()){
             proj_spawn -= dt;
             if(proj_spawn <= 0.f){
-                auto p = instanciateProjectile(proj);
+                auto p = instanciateProjectile(&assets);
                 int angle = Random::randInt(urdi(60,120));
                 sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
                 int randXpos = Random::randInt(urdi(0,(int)camRect.width));
                 p.movement = sf::Vector2f{std::cos((float)(M_PI/180)*angle),std::sin((float)(M_PI/180)*angle)}*50.f;
                 p.projectile.setPosition({camRect.left+randXpos,camRect.top});
                 projectiles.push_back(p);
+                lights.push_back(p.projectile.getLight());
                 if(level == 1){
                     proj_spawn = 0.5f;
                 }
@@ -382,6 +431,20 @@ int main()
         for(auto & spark : sparks){
             spark.draw(window , camera);
         }
+
+        for(int i = 0;i < lights.size();i++){
+            shader.setUniform("lights["+std::to_string(i)+"].position" , lights[i].position);
+            shader.setUniform("lights["+std::to_string(i)+"].radius" , lights[i].radius);
+            shader.setUniform("lights["+std::to_string(i)+"].intensity" , lights[i].intensity);
+            shader.setUniform("lights["+std::to_string(i)+"].color" , lights[i].color);
+        }
+
+        shader.setUniform("nLight" , (int)lights.size());
+        shader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
+
+        lrt.draw(result , &shader);
+        lrt.display();
+        window.draw(lightRendering , &lrt.getTexture());
         window.draw(black_filter);
         window.display();
     }

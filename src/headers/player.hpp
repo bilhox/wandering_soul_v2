@@ -43,7 +43,6 @@ class Player : public Entity {
         int m_airtime;
         TextState m_textState;
         bool m_jumping;
-        AssetManager* m_assets;
         Animation* m_anim;
         ParticleSystem m_pSys {{0,0}};
         std::vector<Spark> m_sparks;

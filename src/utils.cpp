@@ -1,5 +1,7 @@
 #include "headers/utils.hpp"
+#include "headers/light.hpp"
 #include <algorithm>
+#include <iostream>
 
 
 std::vector<std::string> split (std::string str, std::string delimiter) {
@@ -44,24 +46,28 @@ sf::Vector2f operator/(const sf::Vector2f& vec1 , const float& x){
     return {vec1.x/x , vec1.y/x};
 }
 
-EntityData instanciateProjectile(sf::Texture & texture){
-    Entity projectile{};
-    projectile.setTexture(texture);
+EntityData instanciateProjectile(AssetManager* assets){
+    Entity projectile{assets};
+    projectile.setTexture(assets->getTexture("projectile"));
     projectile.setSize({5,5});
     projectile.setTextSize({5,5});
     projectile.setTextOffset({2,2});
     projectile.resetTextCoords();
-    projectile.setLightRadius(9.f);
-    projectile.setLightColor(sf::Color{16,5,8});
+    Light & light = projectile.getLight();
+    light.radius = 50.f;
+    light.position = projectile.getPosition();
+    light.color = {255.f , 255.f , 255.f};
+    light.intensity = 0.25f;
+
     EntityData entData;
     entData.movement = {-1.f , 0};
     entData.projectile = projectile;
     return entData;
 }
 
-Door instanciateDoor(sf::Texture & texture){
-    Entity door{};
-    door.setTexture(texture);
+Door instanciateDoor(AssetManager* assets){
+    Entity door{assets};
+    door.setTexture(assets->getTexture("door"));
     door.setSize({8,16});
     door.setTextSize({16,16});
     door.setTextOffset({4,0});

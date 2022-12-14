@@ -229,12 +229,11 @@ void Player::setMovementAbility(bool state){
     }
 }
 
-Player::Player(AssetManager* assets){
+Player::Player(AssetManager* assets) : Entity(assets){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
     m_jumpAmount = 1.75f;
     m_gravity = 3.f;
-    m_assets = assets;
     m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});
     setOrigin({5,7});
@@ -252,8 +251,6 @@ Player::Player(AssetManager* assets){
     m_pSys.setRange("duration" , 2.6 , 2.6);
     m_pSys.setSpawnRate(.15f);
     m_pSys.setRange("offsetX" , -4 , 4);
-    m_pSys.setLightColor(sf::Color(3 , 6 , 12));
-    m_pSys.setLightRadius(7);
     m_pSys.setContinuous(false);
     m_ableToMove = true;
 }
@@ -368,7 +365,8 @@ void Player::postUpdate(float dt){
 
     if(m_textState == TextState::ANIMATION && m_anim){
         m_anim->update(dt);
-        m_anim->prepareTexture(m_vertices);
+        auto r = m_anim->getTextRect();
+        setTextPos(sf::Vector2f(r.getPosition()),sf::Vector2f(r.getPosition()+r.getSize()));
     }
 }
 

@@ -1,12 +1,14 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include "light.hpp"
+#include "asset_manager.hpp"
 #include <vector>
 #include <map>
 
 class Entity : public sf::Transformable {
     public:
-        Entity();
+        Entity(AssetManager* assets);
         virtual void update(float dt);
         virtual void events(sf::Event & event , sf::Window & window , float dt);
         void setPosition(const sf::Vector2f & position);
@@ -18,9 +20,9 @@ class Entity : public sf::Transformable {
         const sf::Vector2f & getTextOffset() const;
         const sf::FloatRect & getRect() const;
         void resetTextCoords();
+        void setTextPos(sf::Vector2f start , sf::Vector2f end);
         sf::Vector2f getSize() const;
-        void setLightRadius(float radius);
-        void setLightColor(sf::Color color);
+        Light & getLight();
         void display(sf::RenderWindow & window , sf::View view) ;
 
     protected:
@@ -30,9 +32,10 @@ class Entity : public sf::Transformable {
         sf::FloatRect m_rect;
         sf::VertexArray m_vertices;
         sf::Texture* m_texture = nullptr;
+        AssetManager* m_assets;
         sf::Vector2f m_textOffset;
         sf::Vector2f m_textSize;
-        sf::CircleShape m_light;
+        Light m_light;
         float m_rotation;
         bool m_flip;
 

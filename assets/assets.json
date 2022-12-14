@@ -31,6 +31,10 @@
         {
             "name":"projectile",
             "source":"./images/projectile.png"
+        },
+        {
+            "name":"light",
+            "source":"./images/light.png"
         }
     ],
     "animations":[

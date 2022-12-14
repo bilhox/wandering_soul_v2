@@ -3,17 +3,16 @@
 #include <vector>
 #include <string>
 #include <random>
-
 #include "entity.hpp"
 #include <SFML/Graphics.hpp>
 
 struct EntityData{
-    Entity projectile;
+    Entity projectile{nullptr};
     sf::Vector2f movement;
 };
 
 struct Door{
-    Entity door;
+    Entity door{nullptr};
     std::string destination;
     bool visible;
 };
@@ -26,8 +25,9 @@ std::string strip(std::string str , bool before = true , bool after = true);
 bool overlaps(const sf::FloatRect & rect1 , const sf::FloatRect & rect2);
 sf::Vector2f operator/(const sf::Vector2f& vec1 , const float& x);
 sf::Vector2f operator*(const sf::Vector2f& vec1 , const sf::Vector2f& vec2);
-EntityData instanciateProjectile(sf::Texture & texture);
-Door instanciateDoor(sf::Texture & texture);
+EntityData instanciateProjectile(AssetManager* assets);
+Door instanciateDoor(AssetManager* assets);
+
 
 namespace Random{
     static std::random_device dev;

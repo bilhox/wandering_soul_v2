@@ -1,8 +1,7 @@
 #include "headers/enemy.hpp"
 #include <iostream>
 
-Eye::Eye(AssetManager* assets , std::vector<EntityData> & projectiles){
-    this->projectiles = &projectiles;
+Eye::Eye(AssetManager* assets) : Entity(assets){
     m_assets = assets;
     m_attack = AttackState::ARROW;
     m_attacks = 0;
@@ -81,12 +80,13 @@ void Eye::update(float dt) {
                 auto v = m_targetPos-getPosition();
                 if(v.x*v.x+v.y*v.y != 0){
                     for(int i = -1;i < 2;i+=2){
-                        auto proj = instanciateProjectile(m_assets->getTexture("projectile"));
+                        auto proj = instanciateProjectile(m_assets);
                         auto angle = std::atan2(v.y , v.x);
                         proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*125.f;
                         auto orthoOff = sf::Vector2f{-std::sin(angle),std::cos(angle)}*(float)m_nProjSpawned*4.f*(float)i;
                         proj.projectile.setPosition(getPosition()+orthoOff);
                         projectiles->push_back(proj);
+                        lights->push_back(proj.projectile.getLight());
                     }
                     for(int i = 0;i < 6 ;i++){
                         float sp = Random::randFloat(urdf(200,250));
@@ -108,11 +108,12 @@ void Eye::update(float dt) {
             }
         } else if (m_attack == AttackState::CIRCLE && m_spawnForm){
             for(int i = 0;i < 36;i++){
-                auto proj = instanciateProjectile(m_assets->getTexture("projectile"));
+                auto proj = instanciateProjectile(m_assets);
                 float angle = (M_PI*2)*(float)i/36.f;
                 proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*45.f;
                 proj.projectile.setPosition(getPosition());
                 projectiles->push_back(proj);
+                        lights->push_back(proj.projectile.getLight());
             }
             for(int i = 0;i < 6 ;i++){
                 float sp = Random::randFloat(urdf(200,250));
@@ -129,11 +130,12 @@ void Eye::update(float dt) {
             int n = m_nProjSpawned / 6;
             if(m_spawnRate < 0.f){
                 for(int i = 0;i < 6;i++){
-                    auto proj = instanciateProjectile(m_assets->getTexture("projectile"));
+                    auto proj = instanciateProjectile(m_assets);
                     float angle = (M_PI*2) * (i / 6.f + n / 25.f);
                     proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*30.f;
                     proj.projectile.setPosition(getPosition());
                     projectiles->push_back(proj);
+                        lights->push_back(proj.projectile.getLight());
                     m_nProjSpawned ++;
                 }
                 
@@ -161,11 +163,12 @@ void Eye::update(float dt) {
                     float n = ((m_nProjSpawned / 12) / 25.f) * j;
 
                     for(int i = 0;i < 6;i++){
-                    auto proj = instanciateProjectile(m_assets->getTexture("projectile"));
+                    auto proj = instanciateProjectile(m_assets);
                     float angle = (M_PI*2) * (n + i / 6.f);
                     proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*30.f;
                     proj.projectile.setPosition(getPosition());
                     projectiles->push_back(proj);
+                    lights->push_back(proj.projectile.getLight());
                     m_nProjSpawned ++;
                     }
                 }
@@ -191,11 +194,12 @@ void Eye::update(float dt) {
             if(m_spawnRate < 0.f){
                 float n = m_nProjSpawned / 3;
                 for(int i = 0;i < 3;i++){
-                    auto proj = instanciateProjectile(m_assets->getTexture("projectile"));
+                    auto proj = instanciateProjectile(m_assets);
                     float angle = (M_PI*2) * (i / 3.f + n / 150.f);
                     proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*30.f;
                     proj.projectile.setPosition(getPosition());
                     projectiles->push_back(proj);
+                    lights->push_back(proj.projectile.getLight());
                     m_nProjSpawned ++;
                 }
                 
@@ -254,7 +258,7 @@ void Eye::update(float dt) {
 
 void Eye::display(sf::RenderWindow & window , sf::View view) {
     Entity::display(window , view);
-    if(getSize().y*2-2 > 16){
+    if(getSize().y-2 > 16){
         sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
         auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
         sf::Vector2f p = (getPosition()-view.getCenter()+view.getSize()*0.5f+m_pupil.offset);

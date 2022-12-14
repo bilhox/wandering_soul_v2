@@ -52,8 +52,6 @@ class ParticleSystem{
         void setRange(std::string type , float min , float max);
         void setContinuous(bool state);
         void setAnimation(Animation & animation);
-        void setLightRadius(float radius);
-        void setLightColor(sf::Color color);
         void clear();
     
     private:
@@ -62,10 +60,10 @@ class ParticleSystem{
         float m_timer;
         bool m_continuous;
         sf::Vector2f m_position;
+        sf::VertexArray m_vertices;
         std::map<std::string , urdf> m_urdfs;
         std::vector<Particle> m_particles;
         TextState m_textState;
         Animation m_anim;
         sf::Texture* m_texture = nullptr;
-        sf::CircleShape m_light;
 };

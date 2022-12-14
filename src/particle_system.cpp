@@ -109,9 +109,7 @@ ParticleSystem::ParticleSystem(sf::Vector2f startpos){
     setRange("offsetX" , 0 , 0);
     setRange("offsetY" , 0 , 0);
     m_textState = TextState::TEXTURE;
-    m_light = sf::CircleShape();
-    m_light.setScale(sf::Vector2f(3,3));
-    m_light.setFillColor(sf::Color{0,0,0});
+    m_vertices.setPrimitiveType(sf::Triangles);
 }
 
 void ParticleSystem::setPosition(const sf::Vector2f & position){
@@ -191,14 +189,6 @@ void ParticleSystem::setContinuous(bool state){
     m_continuous = state;
 }
 
-void ParticleSystem::setLightRadius(float radius){
-    m_light.setRadius(radius);
-}
-
-void ParticleSystem::setLightColor(sf::Color color){
-    m_light.setFillColor(color);
-}
-
 void ParticleSystem::spawnParticles(unsigned int n){
     for (int i = 0; i < n; i++)
     {
@@ -208,7 +198,7 @@ void ParticleSystem::spawnParticles(unsigned int n){
         auto offX = Random::randFloat(m_urdfs["offsetX"]);
         auto offY = Random::randFloat(m_urdfs["offsetY"]);
 
-        Particle particle{m_position+sf::Vector2f{offX , offY} , {std::cos(a) , -std::sin(a)} , s , d};
+        Particle particle{sf::Vector2f{offX , offY} , {std::cos(a) , -std::sin(a)} , s , d};
         particle.setAnimation(m_anim);
         m_particles.push_back(particle);
     }
@@ -219,11 +209,7 @@ void ParticleSystem::display(sf::RenderTarget & target , sf::View view) {
     sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
     auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     for(auto & particle : m_particles){
-        auto pos = particle.getPosition();
-        sf::Vector2f p = (pos-sf::Vector2f{m_light.getRadius(),m_light.getRadius()}-view.getCenter()+view.getSize()*0.5f);
-        m_light.setPosition({p.x*zoom.x , p.y*zoom.y});
-        m_light.setScale(zoom);
+        auto pos = particle.getPosition()+m_position;
         particle.display(target , view);
-        target.draw(m_light , sf::BlendAdd);
     }
 }

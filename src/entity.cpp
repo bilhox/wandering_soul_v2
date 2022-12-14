@@ -3,17 +3,15 @@
 #include <iostream>
 #include <cmath>
 
-Entity::Entity(){
-    m_vertices.resize(4);
-    m_vertices.setPrimitiveType(sf::TriangleStrip);
+Entity::Entity(AssetManager* assets){
+    m_assets = assets;
+    m_vertices.resize(6);
+    m_vertices.setPrimitiveType(sf::Triangles);
     m_rect = sf::FloatRect(sf::Vector2f(0,0) , sf::Vector2f(0,0));
     m_collisionSide = {{"right" , false},{"left" , false},{"top" , false},{"down" , false}};
     m_flip = false;
     m_rotation = 0.f;
     setOrigin({0,0});
-    m_light = sf::CircleShape();
-    m_light.setScale(sf::Vector2f(3,3));
-    m_light.setFillColor(sf::Color{0,0,0});
 }
 
 void Entity::setPosition(const sf::Vector2f & position){
@@ -47,10 +45,13 @@ void Entity::setSize(sf::Vector2f size){
 
 void Entity::setTextSize(sf::Vector2f size){
     m_textSize = size;
-    for(int i = 0; i < m_vertices.getVertexCount();i++){
-        sf::Vertex* vertex = &m_vertices[i];
-        vertex->position = sf::Vector2f(size.x*(i%2),size.y*(i/2));
-    }
+    sf::Vertex* vertex = &m_vertices[0];
+    vertex[0].position = sf::Vector2f(0,0);
+    vertex[1].position = sf::Vector2f(size.x,0);
+    vertex[2].position = sf::Vector2f(0,size.y);
+    vertex[3].position = sf::Vector2f(size.x,0);
+    vertex[4].position = sf::Vector2f(0,size.y);
+    vertex[5].position = size;
 }
 
 void Entity::setTexture(sf::Texture & texture){
@@ -58,11 +59,30 @@ void Entity::setTexture(sf::Texture & texture){
     setSize(sf::Vector2f(m_texture->getSize()));
 }
 
+void Entity::setTextPos(sf::Vector2f start , sf::Vector2f end){
+
+    sf::Vector2f ts = end-start;
+
+    sf::Vertex* vertex = &m_vertices[0];
+
+    vertex[0].texCoords = start+sf::Vector2f(0,0);
+    vertex[1].texCoords = start+sf::Vector2f(ts.x,0);
+    vertex[2].texCoords = start+sf::Vector2f(0,ts.y);
+    vertex[3].texCoords = start+sf::Vector2f(ts.x,0);
+    vertex[4].texCoords = start+sf::Vector2f(0,ts.y);
+    vertex[5].texCoords = start+ts;
+
+    m_textSize = ts;
+}
+
 void Entity::resetTextCoords(){
-    for(int i = 0; i < m_vertices.getVertexCount();i++){
-        sf::Vertex* vertex = &m_vertices[i];
-        vertex->texCoords = sf::Vector2f(m_textSize.x*(i%2),m_textSize.y*(i/2));
-    }
+    sf::Vertex* vertex = &m_vertices[0];
+    vertex[0].texCoords = sf::Vector2f(0,0);
+    vertex[1].texCoords = sf::Vector2f(m_textSize.x,0);
+    vertex[2].texCoords = sf::Vector2f(0,m_textSize.y);
+    vertex[3].texCoords = sf::Vector2f(m_textSize.x,0);
+    vertex[4].texCoords = sf::Vector2f(0,m_textSize.y);
+    vertex[5].texCoords = m_textSize;
 }
 
 void Entity::display(sf::RenderWindow & window , sf::View view)  {
@@ -73,12 +93,8 @@ const sf::Vector2f & Entity::getTextOffset() const {
     return m_textOffset;
 }
 
-void Entity::setLightRadius(float radius){
-    m_light.setRadius(radius);
-}
-
-void Entity::setLightColor(sf::Color color){
-    m_light.setFillColor(color);
+Light & Entity::getLight(){
+    return m_light;
 }
 
 void Entity::draw(sf::RenderTarget & target , sf::View view) {
@@ -96,12 +112,7 @@ void Entity::draw(sf::RenderTarget & target , sf::View view) {
     states.transform = transform;
     states.texture = &*m_texture;
 
-    sf::Vector2f p = (getPosition()-sf::Vector2f{m_light.getRadius(),m_light.getRadius()}-view.getCenter()+view.getSize()*0.5f);
-    m_light.setPosition({p.x*zoom.x , p.y*zoom.y});
-    m_light.setScale(zoom);
-
     target.draw(m_vertices , states);
-    target.draw(m_light , sf::BlendAdd);
 }
 
 sf::Vector2f Entity::getSize() const {
