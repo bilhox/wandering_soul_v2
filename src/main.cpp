@@ -123,7 +123,12 @@ int main()
     for(int i = 0;i < lightRendering.getVertexCount();i++){
         sf::Vertex & vertex = lightRendering[i];
         vertex.position = sf::Vector2f((i%2)*900.f , (i/2)*600.f);
+        vertex.texCoords = sf::Vector2f((i%2)*300.f , (i/2)*200.f);
     }
+
+    sf::RenderStates lightRenderingStates;
+    lightRenderingStates.texture = &lrt.getTexture();
+    lightRenderingStates.blendMode = sf::BlendAdd;
 
     sf::Shader shader;
 
@@ -144,13 +149,11 @@ int main()
     std::vector<Light> lightTypes;
 
     Light light {};
-    light.radius = 5.f;
-    light.color = {255.f , 255.f , 255.f};
-    light.intensity = 0.25f;
+    light.radius = 20.f;
+    light.color = {12.f/255.f , 2.f/255.f , 6.f/255.f};
     lightTypes.push_back(light);
 
     shader.setUniform("lights[0].radius" , light.radius);
-    shader.setUniform("lights[0].intensity" , light.intensity);
     shader.setUniform("lights[0].color" , light.color);
 
     while (window.isOpen())
@@ -280,8 +283,10 @@ int main()
         player.collisions(map.getColliders() , camera);
         player.postUpdate(dt);
 
-        eye.update(dt);
-        eye.updatePupil(player.getPosition());
+        if(level == 3 && !transition){
+            eye.update(dt);
+            eye.updatePupil(player.getPosition());
+        }
 
         if(level == 1 && player.isAlive() && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
             for(int i = 0;i < 22;i++){
@@ -330,6 +335,7 @@ int main()
 
         for(int i = projectiles.size() -1 ; i >= 0 ; i--){
             projectiles[i].projectile.move(projectiles[i].movement*dt);
+            lights[i] = projectiles[i].projectile.getLightDatas();
             if(projSpawning && !transition){
                 if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
                     player.die();
@@ -429,10 +435,11 @@ int main()
 
 
         window.clear({20, 19, 39});
+        lrt.clear({0,0,0,0});
         map.display(window , camera , 0);
         if(door.visible)
             door.door.display(window , camera);
-        if(level == 3 && !eye.isDead())
+        if(level == 3 && !eye.isDead() && !transition)
             eye.display(window , camera);
         if(!player.isSoul())
             player.display(window , camera , 0);
@@ -440,13 +447,13 @@ int main()
         player.display(window , camera , 1);
         if(player.isSoul())
             player.display(window , camera , 0);
-        pSys.display(window , camera);
         for(auto & p : projectiles){
             p.projectile.display(window , camera);
         }
         for(auto & spark : sparks){
             spark.draw(window , camera);
         }
+        pSys.display(window , camera);
 
         shader.setUniformArray("positions" , &lights[0] , lights.size());
 
@@ -455,7 +462,8 @@ int main()
 
         lrt.draw(result , &shader);
         lrt.display();
-        window.draw(lightRendering , &lrt.getTexture());
+
+        window.draw(lightRendering , lightRenderingStates);
         window.draw(black_filter);
         window.display();
     }

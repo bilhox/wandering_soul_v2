@@ -19,7 +19,7 @@ void Entity::setPosition(const sf::Vector2f & position){
     // {std::round(position.x) , std::round(position.y)}
     m_rect.left = position.x;
     m_rect.top = position.y;
-    setLightDatas({position.x , position.y , 0});
+    setLightDatas({position.x+m_rect.width*0.5f , position.y+m_rect.height*0.5f , 0});
 }
 
 void Entity::update(float dt){
@@ -34,9 +34,7 @@ const sf::FloatRect & Entity::getRect() const {
 }
 
 void Entity::move(const sf::Vector2f & offset){
-    Transformable::move(offset);
-    m_rect.left += offset.x;
-    m_rect.top += offset.y;
+    setPosition(getPosition()+offset);
 }
 
 void Entity::setSize(sf::Vector2f size){

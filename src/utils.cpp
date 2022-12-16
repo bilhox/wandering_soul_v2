@@ -49,9 +49,9 @@ sf::Vector2f operator/(const sf::Vector2f& vec1 , const float& x){
 EntityData instanciateProjectile(AssetManager* assets){
     Entity projectile{assets};
     projectile.setTexture(assets->getTexture("projectile"));
-    projectile.setSize({5,5});
+    projectile.setSize({4,4});
     projectile.setTextSize({5,5});
-    projectile.setTextOffset({2,2});
+    projectile.setTextOffset({1,1});
     projectile.resetTextCoords();
     projectile.setLightDatas(sf::Vector3f(0,0,0));
 

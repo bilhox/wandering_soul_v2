@@ -4,6 +4,5 @@
 
 struct Light{
     float radius;
-    float intensity;
     sf::Vector3f color;
 };
