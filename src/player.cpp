@@ -46,8 +46,11 @@ void Player::update(float dt){
         m_velocity.x = 50.f * dt;
     }
 
-    if(m_state == State::NORMAL)
-        m_velocity.y = m_velocity.y + m_gravity * dt;
+    if(m_state == State::NORMAL){
+        float gravityTemp = m_gravityDt;
+        m_gravityDt += 2.75*dt;
+        m_velocity.y = 15*std::pow(m_gravityDt,2)-15*std::pow(gravityTemp,2);
+    }
     
     m_velocity.x = std::max(-10.f , (float) std::min(10.f , m_velocity.x));
     m_velocity.y = std::max(-10.f , (float) std::min(10.f , m_velocity.y));
@@ -66,7 +69,6 @@ void Player::update(float dt){
 void Player::die(){
     m_velocity = {0,-2};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
-    m_jumping = false;
     m_alive = false;
     m_anim = &m_assets->getAnimation("idle");
     m_anim->reset();
@@ -83,19 +85,19 @@ void Player::die(){
         s.setColor(sf::Color::White);
         m_sparks.push_back(s);
     }
-    m_pSys.setAnimation(m_assets->getAnimation("particle"));
-    m_pSys.setContinuous(false);
-    m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
-    m_pSys.setRange("speed" , 100 , 150);
-    m_pSys.setRange("angle" , 0 , 360);
-    m_pSys.setRange("duration" , 2.5 , 2.5);
-    m_pSys.setRange("offsetX" , 0 , 0);
-    m_pSys.spawnParticles(25);
-    m_pSys.setRange("speed" , 5 , 8);
-    m_pSys.setRange("angle" , -90 , -90);
-    m_pSys.setRange("duration" , 2.6 , 2.6);
-    m_pSys.setRange("offsetX" , -4 , 4);
-    m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
+    // m_pSys.setAnimation(m_assets->getAnimation("particle"));
+    // m_pSys.setContinuous(false);
+    // m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
+    // m_pSys.setRange("speed" , 100 , 150);
+    // m_pSys.setRange("angle" , 0 , 360);
+    // m_pSys.setRange("duration" , 2.5 , 2.5);
+    // m_pSys.setRange("offsetX" , 0 , 0);
+    // m_pSys.spawnParticles(25);
+    // m_pSys.setRange("speed" , 5 , 8);
+    // m_pSys.setRange("angle" , -90 , -90);
+    // m_pSys.setRange("duration" , 2.6 , 2.6);
+    // m_pSys.setRange("offsetX" , -4 , 4);
+    // m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
 }
 
 void Player::respawn(sf::Vector2f pos){
@@ -110,7 +112,6 @@ void Player::respawn(sf::Vector2f pos){
     m_textOffset = sf::Vector2f(3,3);
     m_textState = TextState::ANIMATION;
     m_state = State::NORMAL;
-    m_jumping = false;
     m_alive = true;
     m_rotation = 0.f;
     m_pSys.clear();
@@ -129,6 +130,7 @@ bool Player::isAlive() const {
 }
 
 void Player::changeState() {
+    m_gravityDt = 0.f;
     if(m_state == State::SOUL){
         m_state = State::NORMAL;
         resetTextCoords();
@@ -186,8 +188,7 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
 
             if (m_state == State::NORMAL && event.key.code == sf::Keyboard::Up){
                 if(m_airtime <= 3){
-                    m_velocity.y = -m_jumpAmount;
-                    m_jumping = true;
+                    m_gravityDt = -m_jumpAmount;
                     float speed = Random::randFloat(urdf(30,50));
                     float scale = Random::randFloat(urdf(2.5f,4.5f));
                     for(int i = 0;i < 2;i++){
@@ -233,7 +234,7 @@ Player::Player(AssetManager* assets) : Entity(assets){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
     m_jumpAmount = 1.75f;
-    m_gravity = 3.f;
+    m_gravityDt = 3.f;
     m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});
     setOrigin({5,7});
@@ -242,7 +243,6 @@ Player::Player(AssetManager* assets) : Entity(assets){
     m_textOffset = sf::Vector2f(3,3);
     m_textState = TextState::ANIMATION;
     m_state = State::NORMAL;
-    m_jumping = false;
     m_alive = true;
     m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
     m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
@@ -320,9 +320,9 @@ void Player::postUpdate(float dt){
         if(m_collisionSide["down"]){
         m_airtime = 0;
         m_velocity.y = 0;
-        m_jumping = false;
+        m_gravityDt = 0.f;
         } else if (m_collisionSide["top"]){
-            m_velocity.y = 1.f;
+            m_gravityDt = 0.f;
         }
     }
 

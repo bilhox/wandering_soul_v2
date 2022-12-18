@@ -38,7 +38,7 @@ class Player : public Entity {
         };
 
         std::map<std::string , bool> m_keys;
-        float m_gravity;
+        float m_gravityDt;
         float m_jumpAmount;
         int m_airtime;
         TextState m_textState;

@@ -1,5 +1,5 @@
 struct Light{
-    float radius;
+    float squaredRadius;
     vec3 color;
 };
 
@@ -15,9 +15,8 @@ void main()
     for(int i = 0;i < nLight;i++){
         vec2 dist = positions[i].xy-viewOrigin-gl_FragCoord.xy;
         float squaredDist = dist.x*dist.x + dist.y*dist.y;
-        if(squaredDist < pow(lights[int(positions[i].z)].radius,2)){
-            final_color = vec4(lights[int(positions[i].z)].color , 1);
-            break;
+        if(squaredDist < lights[int(positions[i].z)].squaredRadius){
+            final_color += vec4(lights[int(positions[i].z)].color , 1);
         }
     }
     gl_FragColor = final_color;

@@ -71,14 +71,14 @@ int main()
     black_filter.resize(4);
     black_filter.setPrimitiveType(sf::TriangleStrip);
 
-    ParticleSystem pSys {{0,0}};
+    // ParticleSystem pSys {{0,0}};
 
-    pSys.setAnimation(assets.getAnimation("player_particle"));
-    pSys.setContinuous(false);
-    pSys.setRange("speed" , 80 , 120);
-    pSys.setRange("angle" , 0 , 360);
-    pSys.setRange("duration" , 0.6f , 1.2f);
-    pSys.setRange("offsetX" , 0 , 0);
+    // pSys.setAnimation(assets.getAnimation("player_particle"));
+    // pSys.setContinuous(false);
+    // pSys.setRange("speed" , 80 , 120);
+    // pSys.setRange("angle" , 0 , 360);
+    // pSys.setRange("duration" , 0.6f , 1.2f);
+    // pSys.setRange("offsetX" , 0 , 0);
 
     for(int i = 0;i < black_filter.getVertexCount();i++){
         sf::Vertex & vertex = black_filter[i];
@@ -149,11 +149,11 @@ int main()
     std::vector<Light> lightTypes;
 
     Light light {};
-    light.radius = 20.f;
+    light.radius = 20.f*20.f;
     light.color = {12.f/255.f , 2.f/255.f , 6.f/255.f};
     lightTypes.push_back(light);
 
-    shader.setUniform("lights[0].radius" , light.radius);
+    shader.setUniform("lights[0].squaredRadius" , light.radius);
     shader.setUniform("lights[0].color" , light.color);
 
     while (window.isOpen())
@@ -207,7 +207,7 @@ int main()
             }
         }
 
-        pSys.update(dt);
+        // pSys.update(dt);
 
         if(level == 2){
 
@@ -237,8 +237,8 @@ int main()
                     lspt = 0.f;
             } else if (game_timer > 45.f && !level_finished) {
                 door.visible = true;
-                pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
-                pSys.spawnParticles(25);
+                // pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
+                // pSys.spawnParticles(25);
                 level_finished = true;
             }
             
@@ -314,21 +314,21 @@ int main()
         if(level == 3 && eye.isDead() && !level_finished){
             door.visible = true;
 
-            pSys.setAnimation(assets.getAnimation("particle"));
-            pSys.setRange("speed" , 100 , 150);
-            pSys.setRange("angle" , 0 , 360);
-            pSys.setRange("duration" , 2.f , 2.5f);
-            pSys.setRange("offsetX" , 0 , 0);
-            pSys.setPosition(eye.getPosition());
-            pSys.spawnParticles(40);
+            // pSys.setAnimation(assets.getAnimation("particle"));
+            // pSys.setRange("speed" , 100 , 150);
+            // pSys.setRange("angle" , 0 , 360);
+            // pSys.setRange("duration" , 2.f , 2.5f);
+            // pSys.setRange("offsetX" , 0 , 0);
+            // pSys.setPosition(eye.getPosition());
+            // pSys.spawnParticles(40);
 
-            pSys.setAnimation(assets.getAnimation("player_particle"));
-            pSys.setRange("speed" , 80 , 120);
-            pSys.setRange("angle" , 0 , 360);
-            pSys.setRange("duration" , 0.6f , 1.2f);
-            pSys.setRange("offsetX" , 0 , 0);
-            pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
-            pSys.spawnParticles(25);
+            // pSys.setAnimation(assets.getAnimation("player_particle"));
+            // pSys.setRange("speed" , 80 , 120);
+            // pSys.setRange("angle" , 0 , 360);
+            // pSys.setRange("duration" , 0.6f , 1.2f);
+            // pSys.setRange("offsetX" , 0 , 0);
+            // pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
+            // pSys.spawnParticles(25);
             level_finished = true;
             projSpawning = false;
         }
@@ -453,7 +453,7 @@ int main()
         for(auto & spark : sparks){
             spark.draw(window , camera);
         }
-        pSys.display(window , camera);
+        // pSys.display(window , camera);
 
         shader.setUniformArray("positions" , &lights[0] , lights.size());
 
