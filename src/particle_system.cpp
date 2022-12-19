@@ -135,16 +135,14 @@ void ParticleSystem::spawnParticles(unsigned int n){
 void ParticleSystem::updateParticle(size_t index , sf::IntRect pRect){
     
     sf::Vector2f pp = m_particles[index].position;
-    sf::Vector2f ppt = sf::Vector2f(pRect.getSize());
+    sf::Vector2f ppt = sf::Vector2f(pRect.getPosition());
 
-    sf::Vertex * vertex = &m_vertices[index*6];
-
-    vertex[0].position = pp-sf::Vector2f(pRect.getSize())*0.5f;
-    vertex[1].position = pp+sf::Vector2f(pRect.width*0.5f,-pRect.height*0.5f);
-    vertex[2].position = pp+sf::Vector2f(-pRect.width*0.5f,pRect.height*0.5f);
-    vertex[3].position = pp+sf::Vector2f(pRect.width*0.5f,-pRect.height*0.5f);
-    vertex[4].position = pp+sf::Vector2f(-pRect.width*0.5f,pRect.height*0.5f);
-    vertex[5].position = pp+sf::Vector2f(pRect.width*0.5f,pRect.height*0.5f);
+    m_vertices[index*6].position = pp-sf::Vector2f(pRect.getSize())*0.5f;
+    m_vertices[index*6+1].position = pp+sf::Vector2f(pRect.width*0.5f,-pRect.height*0.5f);
+    m_vertices[index*6+2].position = pp+sf::Vector2f(-pRect.width*0.5f,pRect.height*0.5f);
+    m_vertices[index*6+3].position = pp+sf::Vector2f(pRect.width*0.5f,-pRect.height*0.5f);
+    m_vertices[index*6+4].position = pp+sf::Vector2f(-pRect.width*0.5f,pRect.height*0.5f);
+    m_vertices[index*6+5].position = pp+sf::Vector2f(pRect.width*0.5f,pRect.height*0.5f);
 
     /*
     Vertex disposition
@@ -157,12 +155,12 @@ void ParticleSystem::updateParticle(size_t index , sf::IntRect pRect){
     
     */
 
-    vertex[0].texCoords = ppt;
-    vertex[1].texCoords = ppt+sf::Vector2f(pRect.width,0.f);
-    vertex[2].texCoords = ppt+sf::Vector2f(0.f,pRect.height);
-    vertex[3].texCoords = ppt+sf::Vector2f(pRect.width,0.f);
-    vertex[4].texCoords = ppt+sf::Vector2f(0.f,pRect.height);
-    vertex[5].texCoords = ppt+sf::Vector2f(pRect.width,pRect.height);
+    m_vertices[index*6].texCoords = ppt;
+    m_vertices[index*6+1].texCoords = ppt+sf::Vector2f(pRect.width,0.f);
+    m_vertices[index*6+2].texCoords = ppt+sf::Vector2f(0.f,pRect.height);
+    m_vertices[index*6+3].texCoords = ppt+sf::Vector2f(pRect.width,0.f);
+    m_vertices[index*6+4].texCoords = ppt+sf::Vector2f(0.f,pRect.height);
+    m_vertices[index*6+5].texCoords = ppt+sf::Vector2f(pRect.width,pRect.height);
 }
 
 void ParticleSystem::display(sf::RenderTarget & target , sf::View view) {
@@ -174,7 +172,7 @@ void ParticleSystem::display(sf::RenderTarget & target , sf::View view) {
     translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
-    transform.scale(sf::Vector2f(zoom.x,zoom.y));
+    transform.scale(zoom);
     states.transform = transform;
     states.texture = m_anim.getTexture();
 
