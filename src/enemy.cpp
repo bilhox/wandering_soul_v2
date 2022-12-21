@@ -232,6 +232,7 @@ void Eye::update(float dt) {
         }
         else {
             m_eventTimer -= dt;
+            m_targetPos = player->getPosition();
             if(m_eventTimer < 0.f){
                 m_eventTimer = m_formDelay;
                 m_spawnForm = true;

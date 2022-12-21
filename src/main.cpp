@@ -6,6 +6,7 @@
 #include "headers/utils.hpp"
 #include "headers/enemy.hpp"
 #include "headers/light.hpp"
+#include "headers/text.hpp"
 #include <cmath>
 #include <random>
 #include <array>
@@ -15,7 +16,7 @@ int main()
 
     auto map = Tilemap();
 
-    map.load("../assets/levels/level-3.json");
+    map.load("../assets/levels/level-1.json");
 
     sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
     auto window = sf::RenderWindow{ {(unsigned int) Const::ORIGINAL_WINSIZE.x , (unsigned int) Const::ORIGINAL_WINSIZE.y} , "XML parser test"};
@@ -35,6 +36,11 @@ int main()
     sf::Clock clock{};
     float dt = 0;
 
+    Text welcome {assets};
+    welcome.setText("Welcome !");
+    welcome.setColor({255 , 255 , 255});
+    welcome.setPosition({112 , 240});
+
     std::vector<sf::FloatRect> colliders{};
     
     sf::View camera {sf::FloatRect({0,0},{300 , 200})};
@@ -47,7 +53,7 @@ int main()
     door.destination += ".json";
     door.visible = dObj.properties[1]["value"].get<bool>();
 
-    int level = 3;
+    int level = 1;
 
     std::vector<Spark> sparks;
 
@@ -57,8 +63,8 @@ int main()
     float dtAvg = 0.f;
     int tick = 0;
 
-    bool projSpawning = true;
-    bool invincible = true;
+    bool projSpawning = false;
+    bool invincible = false;
     float slowTime = 0.f;
     float zoomTime = 1.2f;
     float game_timer = 0.f;
@@ -444,8 +450,9 @@ int main()
             player.display(window , camera , 0);
         map.display(window , camera , 1);
         player.display(window , camera , 1);
-        if(player.isSoul())
+        if(player.isSoul() && player.isAlive()){
             player.display(window , camera , 0);
+        }
         for(auto & p : projectiles){
             p.projectile.display(window , camera);
         }
@@ -453,6 +460,7 @@ int main()
             spark.draw(window , camera);
         }
         pSys.display(window , camera);
+        welcome.display(window , camera);
 
         shader.setUniformArray("positions" , &lights[0] , lights.size());
 

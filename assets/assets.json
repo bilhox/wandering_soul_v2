@@ -35,6 +35,10 @@
         {
             "name":"light",
             "source":"./images/light.png"
+        },
+        {
+            "name":"small font",
+            "source":"./fonts/small_font.png"
         }
     ],
     "animations":[

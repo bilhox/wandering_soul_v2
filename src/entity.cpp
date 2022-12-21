@@ -16,7 +16,6 @@ Entity::Entity(AssetManager* assets){
 
 void Entity::setPosition(const sf::Vector2f & position){
     Transformable::setPosition(position);
-    // {std::round(position.x) , std::round(position.y)}
     m_rect.left = position.x;
     m_rect.top = position.y;
     setLightDatas({position.x+m_rect.width*0.5f , position.y+m_rect.height*0.5f , 0});

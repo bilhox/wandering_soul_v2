@@ -85,19 +85,20 @@ void Player::die(){
         s.setColor(sf::Color::White);
         m_sparks.push_back(s);
     }
-    // m_pSys.setAnimation(m_assets->getAnimation("particle"));
-    // m_pSys.setContinuous(false);
-    // m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
-    // m_pSys.setRange("speed" , 100 , 150);
-    // m_pSys.setRange("angle" , 0 , 360);
-    // m_pSys.setRange("duration" , 2.5 , 2.5);
-    // m_pSys.setRange("offsetX" , 0 , 0);
-    // m_pSys.spawnParticles(25);
-    // m_pSys.setRange("speed" , 5 , 8);
-    // m_pSys.setRange("angle" , -90 , -90);
-    // m_pSys.setRange("duration" , 2.6 , 2.6);
-    // m_pSys.setRange("offsetX" , -4 , 4);
-    // m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
+    m_pSys.setAnimation(m_assets->getAnimation("particle"));
+    m_pSys.setContinuous(false);
+    m_pSys.setPosition(m_rect.getPosition()+m_rect.getSize()*0.5f);
+    m_pSys.setRange("speed" , 100 , 150);
+    m_pSys.setRange("angle" , 0 , 360);
+    m_pSys.setRange("duration" , 2.5 , 2.5);
+    m_pSys.setRange("offsetX" , 0 , 0);
+    m_pSys.spawnParticles(25);
+    m_pSys.setRange("speed" , 5 , 8);
+    m_pSys.setRange("angle" , -90 , -90);
+    m_pSys.setRange("duration" , 2.6 , 2.6);
+    m_pSys.setRange("offsetX" , -4 , 4);
+    m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
+    m_gravityDt = -4.f;
 }
 
 void Player::respawn(sf::Vector2f pos){
@@ -115,6 +116,7 @@ void Player::respawn(sf::Vector2f pos){
     m_alive = true;
     m_rotation = 0.f;
     m_pSys.clear();
+    m_gravityDt = 0.f;
 }
 
 const sf::FloatRect Player::getRect() const {
@@ -234,7 +236,7 @@ Player::Player(AssetManager* assets) : Entity(assets){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
     m_jumpAmount = 1.75f;
-    m_gravityDt = 3.f;
+    m_gravityDt = 0.f;
     m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});
     setOrigin({5,7});
