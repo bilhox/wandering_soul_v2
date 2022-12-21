@@ -11,16 +11,13 @@ FontData loadFont(sf::Texture & font){
     std::vector<char> letters {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','.','-',',',':','+','\'','!','?','0','1','2','3','4','5','6','7','8','9','(',')','/','_','=','\\','[',']','*','"','<','>',';'};
 
     unsigned int lwidth = 0;
-    size_t lindex = 0;
+    int lindex = 0;
     for (int i = 0; i < fwidth ; i++){
-        if(fimage.getPixel(i , 0).r == 255){
-            try{
-                fdata.letter_widths[letters.at(lindex)] = lwidth;
-                fdata.letter_bpos[letters.at(lindex)] = i-lwidth;
-            } catch (const std::out_of_range & error){
-                std::cout << lindex << std::endl;
-                exit(-1);
-            }
+        auto cpixel = fimage.getPixel(i , 0);
+        if(cpixel.r == 255){
+            std::cout << cpixel.a << std::endl;
+            fdata.letter_widths[letters.at(lindex)] = lwidth;
+            fdata.letter_bpos[letters.at(lindex)] = i-lwidth;
             lindex ++;
             lwidth = 0;
         } else {
