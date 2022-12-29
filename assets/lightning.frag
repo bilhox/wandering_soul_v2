@@ -3,6 +3,10 @@ struct Light{
     vec3 color;
 };
 
+#ifdef GL_ES
+precision lowp float;
+#endif
+
 uniform vec2 viewOrigin;
 uniform int nLight;
 uniform Light lights[50];
@@ -11,6 +15,7 @@ layout(origin_upper_left) in vec4 gl_FragCoord;
 
 void main()
 {
+    
     vec4 final_color = vec4(0, 0, 0, 0);
     for(int i = 0;i < nLight;i++){
         vec2 dist = positions[i].xy-viewOrigin-gl_FragCoord.xy;

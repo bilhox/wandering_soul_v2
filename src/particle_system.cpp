@@ -108,6 +108,7 @@ void ParticleSystem::update(float dt){
 
 void ParticleSystem::clear(){
     m_particles.clear();
+    m_vertices.clear();
 }
 
 void ParticleSystem::setContinuous(bool state){

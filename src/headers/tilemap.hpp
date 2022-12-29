@@ -24,7 +24,8 @@ class Tilemap : public sf::Transformable {
         const sf::Vector2u getSize() const;
         const sf::Vector2u getTileSize() const;
         const std::vector<sf::FloatRect> & getColliders() const;
-        const ObjectData & getObject(std::string name) ;
+        const ObjectData & getObject(std::string name);
+        const std::vector<ObjectData> getObjects(std::string type);
         void display(sf::RenderWindow & window , sf::View view , int lindex = -1);
 
     private:

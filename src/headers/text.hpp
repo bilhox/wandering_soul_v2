@@ -19,6 +19,7 @@ class Text : public sf::Transformable {
         Text(AssetManager & assets);
         void setColor(sf::Color color);
         void setText(std::string text);
+        sf::Vector2u getSize() const;
         void display(sf::RenderTarget & target , sf::View view);
     
     private:
@@ -27,6 +28,7 @@ class Text : public sf::Transformable {
         std::string m_text;
         sf::Color m_color;
         unsigned int m_letter_spacing;
+        sf::Vector2u m_size;
         FontData m_fdata;
 
 };

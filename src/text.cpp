@@ -12,10 +12,9 @@ FontData loadFont(sf::Texture & font){
 
     unsigned int lwidth = 0;
     int lindex = 0;
-    for (int i = 0; i < fwidth ; i++){
+    for (int i = 0; i <= fwidth ; i++){
         auto cpixel = fimage.getPixel(i , 0);
-        if(cpixel.r == 255){
-            std::cout << cpixel.a << std::endl;
+        if(cpixel == sf::Color::Red){
             fdata.letter_widths[letters.at(lindex)] = lwidth;
             fdata.letter_bpos[letters.at(lindex)] = i-lwidth;
             lindex ++;
@@ -33,6 +32,7 @@ Text::Text(AssetManager& assets){
     m_letter_spacing = 1;
     m_vertices.setPrimitiveType(sf::Triangles);
     m_fdata = loadFont(*m_font);
+    m_size = {0 , m_fdata.height};
 }
 
 void Text::setText(std::string text){
@@ -46,7 +46,7 @@ void Text::setText(std::string text){
         
         if(c == ' ' || c == '\n'){
             n++;
-            bpos += 3+m_letter_spacing;
+            bpos += 2+m_letter_spacing;
             continue;
         }
 
@@ -71,7 +71,12 @@ void Text::setText(std::string text){
         n++;
     }
 
+    m_size.x = bpos;
     setColor(m_color);
+}
+
+sf::Vector2u Text::getSize() const {
+    return m_size;
 }
 
 void Text::setColor(sf::Color color){
@@ -86,12 +91,12 @@ void Text::display(sf::RenderTarget & target , sf::View view){
     sf::RenderStates states;
     sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
     auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
-    auto translation = getPosition()+getOrigin()-view.getCenter()+view.getSize()*0.5f;
+    auto translation = getPosition()-getOrigin()-view.getCenter()+view.getSize()*0.5f;
     translation.x = std::round(translation.x*zoom.x);
     translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
-    transform.scale(zoom);
+    transform.scale(zoom*getScale());
     auto origin = getOrigin();
     transform.rotate(getRotation() , origin.x , origin.y);
     states.transform = transform;

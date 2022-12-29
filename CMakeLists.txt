@@ -20,6 +20,7 @@ src/spark.cpp
 src/particle_system.cpp
 src/enemy.cpp
 src/text.cpp
+src/mana.cpp
 )
 target_link_libraries(platformer PRIVATE sfml-graphics)
 target_compile_features(platformer PRIVATE cxx_std_17)

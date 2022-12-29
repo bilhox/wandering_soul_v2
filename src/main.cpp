@@ -7,9 +7,11 @@
 #include "headers/enemy.hpp"
 #include "headers/light.hpp"
 #include "headers/text.hpp"
+#include "headers/mana.hpp"
 #include <cmath>
 #include <random>
 #include <array>
+#include <thread>
 
 int main()
 {
@@ -19,7 +21,8 @@ int main()
     map.load("../assets/levels/level-1.json");
 
     sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
-    auto window = sf::RenderWindow{ {(unsigned int) Const::ORIGINAL_WINSIZE.x , (unsigned int) Const::ORIGINAL_WINSIZE.y} , "XML parser test"};
+    auto window = sf::RenderWindow{ {Const::ORIGINAL_WINSIZE.x , Const::ORIGINAL_WINSIZE.y} , "XML parser test"};
+    // window.setVerticalSyncEnabled(true);
     window.setFramerateLimit(120);
     window.setKeyRepeatEnabled(false);
 
@@ -36,10 +39,26 @@ int main()
     sf::Clock clock{};
     float dt = 0;
 
-    Text welcome {assets};
-    welcome.setText("Welcome !");
-    welcome.setColor({255 , 255 , 255});
-    welcome.setPosition({112 , 240});
+    std::vector<Text> texts;
+
+    for(auto obj : map.getObjects("text")){
+        Text t {assets};
+        t.setPosition(obj.rect.getPosition());
+        t.setText(obj.properties[0]["value"]);
+        t.setColor({255 , 255 , 255});
+        
+        t.setOrigin(sf::Vector2f(t.getSize())/2.f);
+
+        Text tb {assets};
+        tb.setPosition(obj.rect.getPosition()+sf::Vector2f(0.f , 1.f));
+        tb.setText(obj.properties[0]["value"]);
+        tb.setColor({0, 152, 219});
+        
+        tb.setOrigin(sf::Vector2f(t.getSize())/2.f);
+
+        texts.push_back(tb);
+        texts.push_back(t);
+    }
 
     std::vector<sf::FloatRect> colliders{};
     
@@ -64,7 +83,7 @@ int main()
     int tick = 0;
 
     bool projSpawning = false;
-    bool invincible = false;
+    bool invincible = true;
     float slowTime = 0.f;
     float zoomTime = 1.2f;
     float game_timer = 0.f;
@@ -135,7 +154,7 @@ int main()
     lightRenderingStates.texture = &lrt.getTexture();
     lightRenderingStates.blendMode = sf::BlendAdd;
 
-    sf::Shader shader;
+    sf::Shader lightningShader;
 
     if (!sf::Shader::isAvailable())
     {
@@ -144,8 +163,8 @@ int main()
     }
 
 
-    if(!shader.loadFromFile("../assets/fragment.frag" , sf::Shader::Fragment)){
-        std::cout << "Failed to load fragment shader" << std::endl;
+    if(!lightningShader.loadFromFile("../assets/lightning.frag" , sf::Shader::Fragment)){
+        std::cout << "Failed to load fragment lightningShader" << std::endl;
         return -1;
     }
 
@@ -158,8 +177,11 @@ int main()
     light.color = {12.f/255.f , 2.f/255.f , 6.f/255.f};
     lightTypes.push_back(light);
 
-    shader.setUniform("lights[0].squaredRadius" , light.radius);
-    shader.setUniform("lights[0].color" , light.color);
+    lightningShader.setUniform("lights[0].squaredRadius" , light.radius);
+    lightningShader.setUniform("lights[0].color" , light.color);
+
+    ManaOrb orb{};
+    orb.setPosition({12*16.f , 18*16.f});
 
     while (window.isOpen())
     {
@@ -258,6 +280,27 @@ int main()
             }
             if(transition_time > 1.f){
                 map.load(door.destination);
+                texts.clear();
+
+                for(auto obj : map.getObjects("text")){
+                    Text t {assets};
+                    t.setPosition(obj.rect.getPosition());
+                    t.setText(obj.properties[0]["value"]);
+                    t.setColor({255 , 255 , 255});
+                    
+                    t.setOrigin(sf::Vector2f(t.getSize())/2.f);
+
+                    Text tb {assets};
+                    tb.setPosition(obj.rect.getPosition()+sf::Vector2f(0.f , 1.f));
+                    tb.setText(obj.properties[0]["value"]);
+                    tb.setColor({0, 152, 219});
+                    
+                    tb.setOrigin(sf::Vector2f(t.getSize())/2.f);
+
+                    texts.push_back(tb);
+                    texts.push_back(t);
+                }
+                
                 player.respawn(map.getObject("player_position").rect.getPosition());
                 projectiles.clear();
                 lights.clear();
@@ -367,6 +410,11 @@ int main()
                 }
         }
 
+        lightningShader.setUniformArray("positions" , &lights[0] , lights.size());
+
+        lightningShader.setUniform("nLight" , (int)lights.size());
+        lightningShader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
+
         for(int i = sparks.size()-1;i >= 0;i--){
             
             sparks[i].speedScale -= 3.5f * dt;
@@ -438,6 +486,7 @@ int main()
             player.setMovementAbility(false);
         }
 
+        orb.update();
 
         window.clear({20, 19, 39});
         lrt.clear({0,0,0,0});
@@ -460,16 +509,15 @@ int main()
             spark.draw(window , camera);
         }
         pSys.display(window , camera);
-        welcome.display(window , camera);
+        
+        for(auto & text : texts){
+            text.display(window , camera);
+        }
 
-        shader.setUniformArray("positions" , &lights[0] , lights.size());
+        orb.display(window , camera);
 
-        shader.setUniform("nLight" , (int)lights.size());
-        shader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
-
-        lrt.draw(result , &shader);
+        lrt.draw(result , &lightningShader);
         lrt.display();
-
         window.draw(lightRendering , lightRenderingStates);
         window.draw(black_filter);
         window.display();

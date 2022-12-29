@@ -20,11 +20,24 @@ const ObjectData & Tilemap::getObject(std::string name) {
     }
 }
 
+const std::vector<ObjectData> Tilemap::getObjects(std::string type){
+    std::vector<ObjectData> objects {};
+
+    for(auto & val : m_objects){
+        if(val.second.type == type){
+            objects.push_back(val.second);
+        }
+    }
+
+    return objects;
+}
+
 bool Tilemap::load(std::string tmx_path){
 
     m_colliders.clear();
     m_layer_datas.clear();
     m_layers.clear();
+    m_objects.clear();
     m_LayerToDisplay = -1;
     m_tileSize = {0,0};
     m_tmSize = {0,0};
@@ -73,6 +86,7 @@ bool Tilemap::load(std::string tmx_path){
                         obj.rect.top = object["y"];
                         obj.rect.width = object["width"];
                         obj.rect.height = object["height"];
+                        obj.type = object["type"];
                         if(object.contains("properties")){
                             obj.properties = object["properties"];
                         }

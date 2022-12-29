@@ -43,5 +43,5 @@ namespace Random{
 }
 
 namespace Const{
-    static const sf::Vector2f ORIGINAL_WINSIZE {900 , 600};
+    static const sf::Vector2u ORIGINAL_WINSIZE {900 , 600};
 }
