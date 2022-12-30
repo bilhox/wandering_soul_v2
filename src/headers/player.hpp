@@ -5,12 +5,18 @@
 #include "asset_manager.hpp"
 #include "particle_system.hpp"
 #include <map>
+#include <array>
 #include "spark.hpp"
 #include "utils.hpp"
 
 class Player : public Entity {
 
     public:
+
+        unsigned int manaCounter;
+
+    public:
+
         Player(AssetManager* assets);
         void update(float dt);
         void events(sf::Event & event , sf::Window & window , float dt);
@@ -24,6 +30,7 @@ class Player : public Entity {
         void display(sf::RenderWindow & window , sf::View view , unsigned int to_draw = 0) ;
         void changeState();
         void setMovementAbility(bool state);
+        void setSoulReleasingAbility(bool state);
     
     private:
 
@@ -49,5 +56,7 @@ class Player : public Entity {
         State m_state;
         bool m_alive;
         bool m_ableToMove;
+        bool m_ableToReleaseSoul;
+        std::array<float , 2> m_soulTimer;
 
 };

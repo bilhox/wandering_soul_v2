@@ -19,6 +19,8 @@ class Text : public sf::Transformable {
         Text(AssetManager & assets);
         void setColor(sf::Color color);
         void setText(std::string text);
+        void setShadowOffset(const sf::Vector2f & offset);
+        void setShadowColor(sf::Color color);
         sf::Vector2u getSize() const;
         void display(sf::RenderTarget & target , sf::View view);
     
@@ -30,5 +32,11 @@ class Text : public sf::Transformable {
         unsigned int m_letter_spacing;
         sf::Vector2u m_size;
         FontData m_fdata;
+        
+        // Shadow
+        sf::Vector2f m_sOffset;
+        sf::Color m_sColor;
+
+        void updateColor(sf::Color color);
 
 };

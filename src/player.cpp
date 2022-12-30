@@ -64,6 +64,13 @@ void Player::update(float dt){
         }
     }
 
+    if(m_soulTimer[1] > 0.f){
+        m_soulTimer[1] -= dt;
+        if(m_soulTimer[1] <= 0.f){
+            changeState();
+        }
+    }
+
 }
 
 void Player::die(){
@@ -132,9 +139,9 @@ bool Player::isAlive() const {
 }
 
 void Player::changeState() {
-    m_gravityDt = 0.f;
     if(m_state == State::SOUL){
         m_state = State::NORMAL;
+        m_soulTimer[1] = 0.f;
         resetTextCoords();
         setTextSize({13,17});
         setTextOffset({3,3});
@@ -149,8 +156,12 @@ void Player::changeState() {
         m_pSys.setRange("angle" , -90 , -90);
         m_pSys.setRange("duration" , 2.6 , 2.6);
         m_pSys.setRange("offsetX" , -4 , 4);
-    } else {
+        m_gravityDt = 0.f;
+    } else if(manaCounter > 0){
+        m_gravityDt = 0.f;
         m_state = State::SOUL;
+        manaCounter --;
+        m_soulTimer[1] = m_soulTimer[0];
         resetTextCoords();
         setTextSize({9,9});
         setTextOffset({1,-2});
@@ -166,6 +177,10 @@ void Player::changeState() {
         m_pSys.setRange("duration" , 2.6 , 2.6);
         m_pSys.setRange("offsetX" , -4 , 4);
     }
+}
+
+void Player::setSoulReleasingAbility(bool state){
+    m_ableToReleaseSoul = state;
 }
 
 void Player::events(sf::Event & event , sf::Window & window , float dt){
@@ -201,7 +216,7 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
                 }
             }
 
-            if(event.key.code == sf::Keyboard::Z){
+            if(event.key.code == sf::Keyboard::Z && m_ableToReleaseSoul){
                 changeState();
             }
             break;
@@ -255,6 +270,9 @@ Player::Player(AssetManager* assets) : Entity(assets){
     m_pSys.setRange("offsetX" , -4 , 4);
     m_pSys.setContinuous(false);
     m_ableToMove = true;
+    m_ableToReleaseSoul = false;
+    manaCounter = 1;
+    m_soulTimer = {10.f , 0.f};
 }
 
 void Player::collisions(const std::vector<sf::FloatRect> & colliders , sf::View & view){

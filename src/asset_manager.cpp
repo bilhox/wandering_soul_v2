@@ -33,8 +33,43 @@ bool AssetManager::loadFromFile(std::string json_path){
         }
     }
 
+    // if(assets.contains("shaders")){
+    //     for(auto & shader : assets["shaders"]){
+    //         auto fragSource = source;
+    //         if(fragSource.string() != "default")
+    //             fragSource.replace_filename(shader["fragment"]);
+    //         auto vertSource = source;
+    //         if(vertSource.string() != "default")
+    //             vertSource.replace_filename(shader["vertex"]);
+    //         loadShader(shader["name"] , vertSource.string() , fragSource.string());
+    //     }
+    // }
+
     return true;
 }
+
+// bool AssetManager::loadShader(std::string name , std::string vertPath , std::string fragPath){
+
+//     if(vertPath == "default" && fragPath == "default"){
+//         std::cout << "vertex and fragment shaders cannot be DEFAULT in the same time !" << std::endl;
+//         return false;
+//     }
+
+//     sf::Shader shader;
+//     if(vertPath == "default"){
+//         if(!shader.loadFromFile(fragPath , sf::Shader::Fragment))
+//             return false;
+//     } else if(fragPath == "default"){
+//         if(!shader.loadFromFile(vertPath , sf::Shader::Vertex))
+//             return false;
+//     } else {
+//         if(!shader.loadFromFile(vertPath , fragPath))
+//             return false;
+//     }
+
+//     m_shaders.emplace(name , shader);
+//     return true;
+// }
 
 bool AssetManager::load(std::string name , std::string path){
 
@@ -69,6 +104,10 @@ sf::Texture & AssetManager::getTexture(std::string name){
     
     throw std::runtime_error("With AssetManager object : Could not find a texture with the key '"+name+"'");
 }
+
+// sf::Shader& AssetManager::getShader(std::string name){
+//     return m_shaders[name];
+// }
 
 
 Animation & AssetManager::getAnimation(std::string name){

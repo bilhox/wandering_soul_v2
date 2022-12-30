@@ -58,5 +58,17 @@
             "name":"player_particle",
             "source":"./images/animations/pparticle_config.json"
         }
+    ],
+    "shaders":[
+        {
+            "name":"lightning",
+            "vertex":"default",
+            "fragment":"lightning.frag"
+        },
+        {
+            "name":"manaOrb",
+            "vertex":"default",
+            "fragment":"manaOrb.frag"
+        }
     ]
 }

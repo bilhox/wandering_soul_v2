@@ -18,7 +18,7 @@ int main()
 
     auto map = Tilemap();
 
-    map.load("../assets/levels/level-1.json");
+    map.load("../assets/levels/entrance.json");
 
     sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
     auto window = sf::RenderWindow{ {Const::ORIGINAL_WINSIZE.x , Const::ORIGINAL_WINSIZE.y} , "XML parser test"};
@@ -46,18 +46,18 @@ int main()
         t.setPosition(obj.rect.getPosition());
         t.setText(obj.properties[0]["value"]);
         t.setColor({255 , 255 , 255});
-        
+        t.setShadowColor({0, 152, 219});
+        t.setShadowOffset({0 , 1});
         t.setOrigin(sf::Vector2f(t.getSize())/2.f);
-
-        Text tb {assets};
-        tb.setPosition(obj.rect.getPosition()+sf::Vector2f(0.f , 1.f));
-        tb.setText(obj.properties[0]["value"]);
-        tb.setColor({0, 152, 219});
-        
-        tb.setOrigin(sf::Vector2f(t.getSize())/2.f);
-
-        texts.push_back(tb);
         texts.push_back(t);
+    }
+
+    std::vector<ManaOrb> orbs;
+
+    for(auto obj : map.getObjects("mana")){
+        ManaOrb orb{};
+        orb.setPosition(obj.rect.getPosition());
+        orbs.emplace_back(std::move(orb));
     }
 
     std::vector<sf::FloatRect> colliders{};
@@ -72,7 +72,7 @@ int main()
     door.destination += ".json";
     door.visible = dObj.properties[1]["value"].get<bool>();
 
-    int level = 1;
+    int level = 0;
 
     std::vector<Spark> sparks;
 
@@ -91,6 +91,7 @@ int main()
     float lspt = 0.f;
     bool transition = false;
     bool level_finished = false;
+    bool paused = false;
 
     sf::VertexArray black_filter;
     black_filter.resize(4);
@@ -180,8 +181,33 @@ int main()
     lightningShader.setUniform("lights[0].squaredRadius" , light.radius);
     lightningShader.setUniform("lights[0].color" , light.color);
 
-    ManaOrb orb{};
-    orb.setPosition({12*16.f , 18*16.f});
+    // Define UI texts
+
+    Text manaCounterText {assets};
+    manaCounterText.setPosition({10 , 20});
+    manaCounterText.setText("Mana : 1");
+    manaCounterText.setColor({255 , 255 , 255});
+    manaCounterText.setScale({3 , 3});
+    manaCounterText.setShadowColor({0, 152, 219});
+    manaCounterText.setShadowOffset({0 , 1});
+
+    std::vector<ManaOrb> orbAmount;
+    int ySize = manaCounterText.getSize().y;
+    for(int i = 0; i < 3;i++){
+        ManaOrb orb {};
+        orb.setPosition(sf::Vector2f{10.f+(18.f*i)*3.f,35+ySize});
+        orb.setScale({3 , 3});
+        orbAmount.emplace_back(std::move(orb));
+    }
+
+    Text soulTutoText {assets};
+    soulTutoText.setPosition(sf::Vector2f(Const::ORIGINAL_WINSIZE)/2.f-sf::Vector2f(0 , 50.f));
+    soulTutoText.setText("Press z to release/unrelease soul");
+    soulTutoText.setColor(sf::Color::White);
+    soulTutoText.setScale({3 , 3});
+    soulTutoText.setShadowColor({0 , 152 , 219});
+    soulTutoText.setShadowOffset({0 , 1});
+    soulTutoText.setOrigin(sf::Vector2f(soulTutoText.getSize())*3.f/2.f);
 
     while (window.isOpen())
     {
@@ -206,6 +232,10 @@ int main()
 
         for (auto event = sf::Event{}; window.pollEvent(event);)
         {
+            if(window.hasFocus() && !transition && !paused){
+                player.events(event , window , dt);
+            }
+
             switch(event.type){
                 case sf::Event::Closed:
                     window.close();
@@ -226,15 +256,22 @@ int main()
                     }
                     break;
                 
+                case sf::Event::KeyPressed:
+                    if(event.key.code == sf::Keyboard::Z && paused){
+                        slowTime = 1.f;
+                        paused = false;
+                        player.changeState();
+                        player.setSoulReleasingAbility(true);
+                        player.setMovementAbility(true);
+                    }
+
                 default:
                     break;
             }
-            if(window.hasFocus() && !transition){
-                player.events(event , window , dt);
-            }
         }
 
-        pSys.update(dt);
+        if(!paused)
+            pSys.update(dt);
 
         if(level == 2){
 
@@ -287,23 +324,16 @@ int main()
                     t.setPosition(obj.rect.getPosition());
                     t.setText(obj.properties[0]["value"]);
                     t.setColor({255 , 255 , 255});
-                    
+                    t.setShadowColor({0, 152, 219});
+                    t.setShadowOffset({0 , 1});
                     t.setOrigin(sf::Vector2f(t.getSize())/2.f);
-
-                    Text tb {assets};
-                    tb.setPosition(obj.rect.getPosition()+sf::Vector2f(0.f , 1.f));
-                    tb.setText(obj.properties[0]["value"]);
-                    tb.setColor({0, 152, 219});
-                    
-                    tb.setOrigin(sf::Vector2f(t.getSize())/2.f);
-
-                    texts.push_back(tb);
                     texts.push_back(t);
                 }
                 
                 player.respawn(map.getObject("player_position").rect.getPosition());
                 projectiles.clear();
                 lights.clear();
+                orbs.clear();
                 auto dObj = map.getObject("door");
 
                 door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f(4,0));
@@ -311,11 +341,16 @@ int main()
                 door.destination += ".json";
                 door.visible = dObj.properties[1]["value"].get<bool>();
                 transition = false;
-                if(level != 4)
+                if(level != 4 && level != 1)
                     projSpawning = true;
                 level_finished = false;
                 player.setMovementAbility(true);
                 mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
+                for(auto obj : map.getObjects("mana")){
+                    ManaOrb orb{};
+                    orb.setPosition(obj.rect.getPosition());
+                    orbs.emplace_back(std::move(orb));
+                }
             }
         } else if (transition_time > 0.f){
             transition_time -= dt;
@@ -327,16 +362,18 @@ int main()
             transition_time = 0.f;
         }
 
-        player.update(dt);
-        player.collisions(map.getColliders() , camera);
-        player.postUpdate(dt);
+        if(!paused){
+            player.update(dt);
+            player.collisions(map.getColliders() , camera);
+            player.postUpdate(dt);
+        }
 
         if(level == 3 && !transition){
             eye.update(dt);
             eye.updatePupil(player.getPosition());
         }
 
-        if(level == 1 && player.isAlive() && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
+        if(level == 1 && player.isAlive() && !transition && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
             for(int i = 0;i < 22;i++){
                 sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
                 auto entData = instanciateProjectile(&assets);
@@ -353,10 +390,10 @@ int main()
                     s.setColor(sf::Color::Black);
                     sparks.push_back(s);
                 }
-                slowTime = 2.f;
             }
+            paused = true;
             projSpawning = true;
-            player.changeState();
+            player.setMovementAbility(false);
         }
 
         if(level == 3 && eye.isDead() && !level_finished){
@@ -381,49 +418,51 @@ int main()
             projSpawning = false;
         }
 
-        for(int i = projectiles.size() -1 ; i >= 0 ; i--){
-            projectiles[i].projectile.move(projectiles[i].movement*dt);
-            lights[i] = projectiles[i].projectile.getLightDatas();
-            if(projSpawning && !transition){
-                if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
-                    player.die();
-                    projectiles.clear();
-                    lights.clear();
+        if(!paused){
+            for(int i = projectiles.size() -1 ; i >= 0 ; i--){
+                projectiles[i].projectile.move(projectiles[i].movement*dt);
+                lights[i] = projectiles[i].projectile.getLightDatas();
+                if(projSpawning && !transition){
+                    if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
+                        player.die();
+                        projectiles.clear();
+                        lights.clear();
 
-                    if(level == 3){
-                        eye.resetAttacks();
-                    } 
+                        if(level == 3){
+                            eye.resetAttacks();
+                        } 
 
-                    game_timer = 0.f;
-                    if(level == 1){
-                        projSpawning = false;
-                    } else {
-                        door.visible = false;
+                        game_timer = 0.f;
+                        if(level == 1){
+                            projSpawning = false;
+                        } else {
+                            door.visible = false;
+                        }
+                        zoomTime = 0.f;
+                        break;
                     }
-                    zoomTime = 0.f;
-                    break;
+                }
+                if(!projectiles[i].projectile.getRect().intersects(mapRect)){
+                        projectiles.erase(projectiles.begin()+i);
+                        lights.erase(lights.begin()+i);
+                    }
+            }
+
+            for(int i = sparks.size()-1;i >= 0;i--){
+            
+                sparks[i].speedScale -= 3.5f * dt;
+                sparks[i].speed -= 17.5f * dt;
+                sparks[i].update(dt);
+                if(sparks[i].speedScale <= 0){
+                    sparks.erase(sparks.begin()+i);
                 }
             }
-            if(!projectiles[i].projectile.getRect().intersects(mapRect)){
-                    projectiles.erase(projectiles.begin()+i);
-                    lights.erase(lights.begin()+i);
-                }
         }
 
         lightningShader.setUniformArray("positions" , &lights[0] , lights.size());
 
         lightningShader.setUniform("nLight" , (int)lights.size());
         lightningShader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
-
-        for(int i = sparks.size()-1;i >= 0;i--){
-            
-            sparks[i].speedScale -= 3.5f * dt;
-            sparks[i].speed -= 17.5f * dt;
-            sparks[i].update(dt);
-            if(sparks[i].speedScale <= 0){
-                sparks.erase(sparks.begin()+i);
-            }
-        }
 
         if(!player.isAlive()){
             death_time -= dt;
@@ -448,7 +487,7 @@ int main()
             camera.setCenter({camera.getCenter().x,map.getSize().y*map.getTileSize().y-(camera.getSize()/2.f).y});
         }
 
-        if(projSpawning && !transition && player.isAlive()){
+        if(projSpawning && !paused && !transition && player.isAlive()){
             proj_spawn -= dt;
             if(proj_spawn <= 0.f){
                 auto p = instanciateProjectile(&assets);
@@ -486,7 +525,23 @@ int main()
             player.setMovementAbility(false);
         }
 
-        orb.update();
+        if(player.isAlive()){
+            for (int i = orbs.size()-1;i>=0;i--){
+                if(orbs[i].collideRect(player.getRect())){
+                    player.manaCounter ++;
+                    manaCounterText.setText("Mana : "+std::to_string(player.manaCounter));
+
+                    pSys.setAnimation(assets.getAnimation("player_particle"));
+                    pSys.setRange("speed" , 100 , 175);
+                    pSys.setRange("angle" , 0 , 360);
+                    pSys.setRange("duration" , 3.f , 3.5f);
+                    pSys.setRange("offsetX" , 0 , 0);
+                    pSys.setPosition(orbs[i].getPosition());
+                    pSys.spawnParticles(40);
+                    orbs.erase(orbs.begin()+i);
+                }
+            }
+        }
 
         window.clear({20, 19, 39});
         lrt.clear({0,0,0,0});
@@ -502,6 +557,10 @@ int main()
         if(player.isSoul() && player.isAlive()){
             player.display(window , camera , 0);
         }
+        for(auto & orb : orbs){
+            orb.display(window , camera);
+        }
+
         for(auto & p : projectiles){
             p.projectile.display(window , camera);
         }
@@ -514,7 +573,12 @@ int main()
             text.display(window , camera);
         }
 
-        orb.display(window , camera);
+        if(paused)
+            soulTutoText.display(window , window.getDefaultView());
+        manaCounterText.display(window , window.getDefaultView());
+        for(auto & orb : orbAmount){
+            orb.display(window , window.getDefaultView());
+        }
 
         lrt.draw(result , &lightningShader);
         lrt.display();

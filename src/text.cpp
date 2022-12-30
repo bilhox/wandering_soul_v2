@@ -33,6 +33,8 @@ Text::Text(AssetManager& assets){
     m_vertices.setPrimitiveType(sf::Triangles);
     m_fdata = loadFont(*m_font);
     m_size = {0 , m_fdata.height};
+    m_sColor = {0,0,0};
+    m_sOffset = {0,0};
 }
 
 void Text::setText(std::string text){
@@ -80,10 +82,20 @@ sf::Vector2u Text::getSize() const {
 }
 
 void Text::setColor(sf::Color color){
-
     m_color = color;
+}
+
+void Text::setShadowOffset(const sf::Vector2f & offset) {
+    m_sOffset = offset;
+}
+
+void Text::setShadowColor(sf::Color color){
+    m_sColor = color;
+}
+
+void Text::updateColor(sf::Color color){
     for (int i = 0; i < m_vertices.getVertexCount();i++){
-        m_vertices[i].color = m_color;
+        m_vertices[i].color = color;
     }
 }
 
@@ -91,7 +103,7 @@ void Text::display(sf::RenderTarget & target , sf::View view){
     sf::RenderStates states;
     sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
     auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
-    auto translation = getPosition()-getOrigin()-view.getCenter()+view.getSize()*0.5f;
+    auto translation = getPosition()+m_sOffset-getOrigin()-view.getCenter()+view.getSize()*0.5f;
     translation.x = std::round(translation.x*zoom.x);
     translation.y = std::round(translation.y*zoom.y);
     sf::Transform transform = sf::Transform::Identity;
@@ -102,5 +114,9 @@ void Text::display(sf::RenderTarget & target , sf::View view){
     states.transform = transform;
     states.texture = m_font;
 
+    updateColor(m_sColor);
+    target.draw(m_vertices , states);
+    updateColor(m_color);
+    states.transform.translate(-m_sOffset);
     target.draw(m_vertices , states);
 }

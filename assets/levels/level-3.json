@@ -658,6 +658,94 @@
                  "width":0,
                  "x":304,
                  "y":576
+                }, 
+                {
+                 "height":16,
+                 "id":95,
+                 "name":"m4",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":272,
+                 "y":592
+                }, 
+                {
+                 "height":16,
+                 "id":96,
+                 "name":"m1",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":64,
+                 "y":528
+                }, 
+                {
+                 "height":16,
+                 "id":97,
+                 "name":"m4",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":295,
+                 "y":556
+                }, 
+                {
+                 "height":16,
+                 "id":98,
+                 "name":"m2",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":576,
+                 "y":512
+                }, 
+                {
+                 "height":16,
+                 "id":99,
+                 "name":"m4",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":464,
+                 "y":352
+                }, 
+                {
+                 "height":16,
+                 "id":100,
+                 "name":"m3",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":208,
+                 "y":352
+                }, 
+                {
+                 "height":16,
+                 "id":101,
+                 "name":"m5",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":208,
+                 "y":240
+                }, 
+                {
+                 "height":16,
+                 "id":102,
+                 "name":"m6",
+                 "rotation":0,
+                 "type":"mana",
+                 "visible":true,
+                 "width":16,
+                 "x":448,
+                 "y":256
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -666,7 +754,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":95,
+ "nextobjectid":103,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.7.2",
