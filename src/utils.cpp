@@ -77,3 +77,7 @@ Door instanciateDoor(AssetManager* assets){
 sf::Vector2f operator*(const sf::Vector2f& vec1 , const sf::Vector2f& vec2){
     return {vec1.x*vec2.x,vec1.y*vec2.y};
 }
+
+sf::Vector2f interpolate(const sf::Vector2f & vec1 , const sf::Vector2f & vec2 , float factor){
+    return vec1+(vec2 - vec1)*factor;
+}

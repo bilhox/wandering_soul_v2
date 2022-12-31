@@ -236,7 +236,6 @@ void Eye::update(float dt) {
             if(m_eventTimer < 0.f){
                 m_eventTimer = m_formDelay;
                 m_spawnForm = true;
-                m_targetPos = player->getPosition();
             }
         }
     } else {

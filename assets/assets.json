@@ -59,16 +59,55 @@
             "source":"./images/animations/pparticle_config.json"
         }
     ],
-    "shaders":[
+    "sounds":[
         {
-            "name":"lightning",
-            "vertex":"default",
-            "fragment":"lightning.frag"
+            "name":"death",
+            "source":"./sounds/death.wav"
         },
         {
-            "name":"manaOrb",
-            "vertex":"default",
-            "fragment":"manaOrb.frag"
+            "name":"door",
+            "source":"./sounds/door.wav"
+        },
+        {
+            "name":"end_level",
+            "source":"./sounds/end_level.wav"
+        },
+        {
+            "name":"enter_soul",
+            "source":"./sounds/enter_soul.wav"
+        },
+        {
+            "name":"exit_soul",
+            "source":"./sounds/exit_soul.wav"
+        },
+        {
+            "name":"eye_shoot_large",
+            "source":"./sounds/eye_shoot_large.wav"
+        },
+        {
+            "name":"eye_shoot",
+            "source":"./sounds/eye_shoot.wav"
+        },
+        {
+            "name":"jump",
+            "source":"./sounds/jump.wav"
+        },
+        {
+            "name":"mana_1",
+            "source":"./sounds/mana_1.wav"
+        },
+        {
+            "name":"mana_2",
+            "source":"./sounds/mana_2.wav"
+        },
+        {
+            "name":"shake",
+            "source":"./sounds/shake.wav"
+        },
+        {
+            "name":"thought",
+            "source":"./sounds/thought.wav"
         }
+
     ]
 }

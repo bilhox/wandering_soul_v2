@@ -5,15 +5,13 @@
 #include "asset_manager.hpp"
 #include "particle_system.hpp"
 #include <map>
+#include <unordered_map>
 #include <array>
 #include "spark.hpp"
 #include "utils.hpp"
+#include <SFML/Audio.hpp>
 
 class Player : public Entity {
-
-    public:
-
-        unsigned int manaCounter;
 
     public:
 
@@ -26,6 +24,7 @@ class Player : public Entity {
         void respawn(sf::Vector2f pos);
         void die();
         bool isAlive() const;
+        bool isAbleToReleaseSoul() const;
         void postUpdate(float dt);
         void display(sf::RenderWindow & window , sf::View view , unsigned int to_draw = 0) ;
         void changeState();
@@ -57,6 +56,6 @@ class Player : public Entity {
         bool m_alive;
         bool m_ableToMove;
         bool m_ableToReleaseSoul;
-        std::array<float , 2> m_soulTimer;
+        std::unordered_map<std::string , sf::Sound> m_sounds;
 
 };

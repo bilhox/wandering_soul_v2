@@ -54,8 +54,21 @@ int main()
 
     std::vector<ManaOrb> orbs;
 
+    // Orb shader things
+
+    sf::Shader orbShader {};
+    sf::Clock orbShaderClock {};
+
+    if(!orbShader.loadFromFile("../assets/manaOrb.frag" , sf::Shader::Fragment)){
+        throw std::runtime_error("Failed to shader manaOrb.");
+    }
+
+    orbShader.setUniform("u_resolution" , sf::Vector2f(16.f , 16.f));
+
+    // Level orbs
+
     for(auto obj : map.getObjects("mana")){
-        ManaOrb orb{};
+        ManaOrb orb{orbShader};
         orb.setPosition(obj.rect.getPosition());
         orbs.emplace_back(std::move(orb));
     }
@@ -96,6 +109,8 @@ int main()
     sf::VertexArray black_filter;
     black_filter.resize(4);
     black_filter.setPrimitiveType(sf::TriangleStrip);
+
+    // Particle system
 
     ParticleSystem pSys {{0,0}};
 
@@ -185,7 +200,7 @@ int main()
 
     Text manaCounterText {assets};
     manaCounterText.setPosition({10 , 20});
-    manaCounterText.setText("Mana : 1");
+    manaCounterText.setText("Mana :");
     manaCounterText.setColor({255 , 255 , 255});
     manaCounterText.setScale({3 , 3});
     manaCounterText.setShadowColor({0, 152, 219});
@@ -193,9 +208,9 @@ int main()
 
     std::vector<ManaOrb> orbAmount;
     int ySize = manaCounterText.getSize().y;
-    for(int i = 0; i < 3;i++){
-        ManaOrb orb {};
-        orb.setPosition(sf::Vector2f{10.f+(18.f*i)*3.f,35+ySize});
+    {
+        ManaOrb orb {orbShader};
+        orb.setPosition(sf::Vector2f{10.f,35+ySize});
         orb.setScale({3 , 3});
         orbAmount.emplace_back(std::move(orb));
     }
@@ -208,6 +223,21 @@ int main()
     soulTutoText.setShadowColor({0 , 152 , 219});
     soulTutoText.setShadowOffset({0 , 1});
     soulTutoText.setOrigin(sf::Vector2f(soulTutoText.getSize())*3.f/2.f);
+
+    unsigned int manaCounter = 1;
+
+    std::array<float , 2> playerSoulTimer {10.f , 0.f};
+
+    // Sounds 
+
+    std::unordered_map<std::string , sf::Sound> gameSounds;
+    std::array<std::string , 3> sbNames {"door" , "mana_1" , "mana_2"};
+
+    for(auto & sn : sbNames){
+        sf::Sound sound {};
+        sound.setBuffer(assets.getSoundBuffer(sn));
+        gameSounds[sn] = sound;    
+    }
 
     while (window.isOpen())
     {
@@ -257,16 +287,40 @@ int main()
                     break;
                 
                 case sf::Event::KeyPressed:
-                    if(event.key.code == sf::Keyboard::Z && paused){
-                        slowTime = 1.f;
-                        paused = false;
-                        player.changeState();
-                        player.setSoulReleasingAbility(true);
-                        player.setMovementAbility(true);
+                    if(event.key.code == sf::Keyboard::Z){
+                        
+                        if(paused){
+                            slowTime = 1.f;
+                            paused = false;
+                            player.changeState();
+                            player.setSoulReleasingAbility(true);
+                            player.setMovementAbility(true);
+                            playerSoulTimer[1] = playerSoulTimer[0];
+                        } else if (player.isAbleToReleaseSoul()){
+                            if(!player.isSoul() && manaCounter > 0){
+                                player.changeState();
+                                manaCounter --;
+                                orbAmount.pop_back();
+                                playerSoulTimer[1] = playerSoulTimer[0];
+                            } else if(player.isSoul()) {
+                                player.changeState();
+                                playerSoulTimer[1] = 0.f;
+                            }
+                        }
                     }
+                    break;
 
                 default:
                     break;
+            }
+        }
+
+        orbShader.setUniform("u_time" , orbShaderClock.getElapsedTime().asSeconds());
+
+        if(playerSoulTimer[1] > 0.f){
+            playerSoulTimer[1] -= dt;
+            if(playerSoulTimer[1] <= 0.f){
+                player.changeState();
             }
         }
 
@@ -281,7 +335,7 @@ int main()
                     for(int i = 0;i < 22;i++){
                         sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
                         auto entData = instanciateProjectile(&assets);
-                        auto pp = sf::Vector2f{(dir)?(0):((float)(map.getSize().x*map.getTileSize().x)),((dir)?0:20)+(((float)(map.getSize().y*map.getTileSize().y) / 20.f)*i)};
+                        auto pp = sf::Vector2f{(dir)?(0):((float)(map.getSize().x*map.getTileSize().x)),((dir)?0:50)+(((float)(map.getSize().y*map.getTileSize().y) / 20.f)*i)};
                         entData.projectile.setPosition(pp);
                         entData.movement = sf::Vector2f((dir)?1:-1 , 0)*50.f;
                         projectiles.push_back(entData);
@@ -311,6 +365,7 @@ int main()
 
         if(transition){
             transition_time += dt;
+            camera.setSize(sf::Vector2f(300.f , 200.f)*interpolate(sf::Vector2f(1.0 , 1.0) , {0.4 , 0.4} , (std::min(1.0f , transition_time))));
             for(int i = 0;i < black_filter.getVertexCount();i++){
                 sf::Vertex & vertex = black_filter[i];
                 vertex.color = sf::Color(0,0,0,(int)(std::min(transition_time , 1.f)*255));
@@ -343,23 +398,27 @@ int main()
                 transition = false;
                 if(level != 4 && level != 1)
                     projSpawning = true;
+                if(level == 3)
+                    eye.setTargetPos(player.getPosition());
                 level_finished = false;
                 player.setMovementAbility(true);
                 mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
                 for(auto obj : map.getObjects("mana")){
-                    ManaOrb orb{};
+                    ManaOrb orb{orbShader};
                     orb.setPosition(obj.rect.getPosition());
                     orbs.emplace_back(std::move(orb));
                 }
             }
         } else if (transition_time > 0.f){
             transition_time -= dt;
+            camera.setSize(sf::Vector2f(300.f , 200.f)*interpolate(sf::Vector2f(1.0 , 1.0) , {0.4 , 0.4} , std::max(0.0f , transition_time)));
             for(int i = 0;i < black_filter.getVertexCount();i++){
                 sf::Vertex & vertex = black_filter[i];
                 vertex.color = sf::Color(0,0,0,(int)(std::max(transition_time , 0.f)*255));
             }
         } else {
             transition_time = 0.f;
+            camera.setSize(sf::Vector2f(300.f , 200.f));
         }
 
         if(!paused){
@@ -518,18 +577,27 @@ int main()
             }
         }
 
+        // Test if the player entered the door
+
         if(player.isAlive() && !transition && door.visible && !player.isSoul() && player.getRect().intersects(door.door.getRect())){
             transition = true;
             level += 1;
             game_timer = 0.f;
             player.setMovementAbility(false);
+            gameSounds["door"].play();
         }
 
         if(player.isAlive()){
             for (int i = orbs.size()-1;i>=0;i--){
                 if(orbs[i].collideRect(player.getRect())){
-                    player.manaCounter ++;
-                    manaCounterText.setText("Mana : "+std::to_string(player.manaCounter));
+                    manaCounter ++;
+                    gameSounds["mana_1"].play();
+                    gameSounds["mana_2"].play();
+
+                    ManaOrb orb {orbShader};
+                    orb.setPosition(sf::Vector2f{10.f+(16.f)*orbAmount.size()*3.f,35+ySize});
+                    orb.setScale({3 , 3});
+                    orbAmount.emplace_back(std::move(orb));
 
                     pSys.setAnimation(assets.getAnimation("player_particle"));
                     pSys.setRange("speed" , 100 , 175);

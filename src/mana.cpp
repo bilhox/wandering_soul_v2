@@ -2,7 +2,7 @@
 #include <cmath>
 #include "headers/utils.hpp"
 
-ManaOrb::ManaOrb(){
+ManaOrb::ManaOrb(const sf::Shader & orbShader){
     m_rect = sf::FloatRect();
     m_rect.width = 16.f;
     m_rect.height = 16.f;
@@ -25,13 +25,7 @@ ManaOrb::ManaOrb(){
     vertex[4].texCoords = {0 , 16.f};
     vertex[5].texCoords = {16.f , 16.f};
 
-    m_shader = std::make_unique<sf::Shader>();
-    
-    if(!m_shader->loadFromFile("../assets/manaOrb.frag" , sf::Shader::Fragment)){
-        throw std::runtime_error("Failed to shader manaOrb.");
-    }
-
-    m_shader->setUniform("u_resolution" , m_rect.getSize());
+    m_shader = &orbShader;
 
 }
 
@@ -44,28 +38,23 @@ sf::Vector2f ManaOrb::getPosition() const {
     return m_rect.getPosition()+m_rect.getSize()/2.f;
 }
 
-void ManaOrb::updateShader(){
-    m_shader->setUniform("u_time" , m_timer.getElapsedTime().asSeconds());
-}
-
 bool ManaOrb::collideRect(const sf::FloatRect & rect) const {
     return m_rect.intersects(rect);
 }
 
-void ManaOrb::display(sf::RenderTarget & target , sf::View view){
+void ManaOrb::display(sf::RenderTarget & target , sf::View view) const{
     sf::RenderStates states;
     sf::Vector2f tvpSize { Const::ORIGINAL_WINSIZE };
     auto zoom = sf::Vector2f(tvpSize.x / (view.getSize().x) , tvpSize.y / (view.getSize().y));
     auto translation = m_rect.getPosition()-getOrigin()-view.getCenter()+view.getSize()*0.5f;
     translation.x = std::round(translation.x*zoom.x);
     translation.y = std::round(translation.y*zoom.y);
-    updateShader();
     sf::Transform transform = sf::Transform::Identity;
     transform.translate(translation);
     transform.scale(sf::Vector2f(zoom.x,zoom.y)*getScale());
     states.transform = transform;
     states.texture = nullptr;
-    states.shader = m_shader.get();
+    states.shader = m_shader;
 
     target.draw(m_vertices , states);
 

@@ -33,6 +33,14 @@ bool AssetManager::loadFromFile(std::string json_path){
         }
     }
 
+    if(assets.contains("sounds")){
+        for(auto & sb : assets["sounds"]){
+            auto sbSource = source;
+            sbSource.replace_filename(sb["source"]);
+            load(sb["name"] , sbSource.string());
+        }
+    }
+
     // if(assets.contains("shaders")){
     //     for(auto & shader : assets["shaders"]){
     //         auto fragSource = source;
@@ -71,6 +79,10 @@ bool AssetManager::loadFromFile(std::string json_path){
 //     return true;
 // }
 
+sf::SoundBuffer & AssetManager::getSoundBuffer(std::string name){
+    return m_soundBuffers[name];
+}
+
 bool AssetManager::load(std::string name , std::string path){
 
     auto source = std::filesystem::path(path);
@@ -92,6 +104,16 @@ bool AssetManager::load(std::string name , std::string path){
 
         animation.name = name;
         m_animations[name] = animation;
+        return true;
+    } else if(source.extension() == ".wav"){
+        sf::SoundBuffer sb;
+
+        if(!sb.loadFromFile(path)){
+            std::cout <<  "Failed to load " << path << std::endl;
+            return false;
+        }
+
+        m_soundBuffers[name] = sb;
         return true;
     }
     return false;

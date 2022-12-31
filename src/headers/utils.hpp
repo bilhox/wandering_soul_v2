@@ -27,6 +27,7 @@ sf::Vector2f operator/(const sf::Vector2f& vec1 , const float& x);
 sf::Vector2f operator*(const sf::Vector2f& vec1 , const sf::Vector2f& vec2);
 EntityData instanciateProjectile(AssetManager* assets);
 Door instanciateDoor(AssetManager* assets);
+sf::Vector2f interpolate(const sf::Vector2f & vec1 , const sf::Vector2f & vec2 , float factor);
 
 
 namespace Random{

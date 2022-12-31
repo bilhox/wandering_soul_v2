@@ -64,13 +64,6 @@ void Player::update(float dt){
         }
     }
 
-    if(m_soulTimer[1] > 0.f){
-        m_soulTimer[1] -= dt;
-        if(m_soulTimer[1] <= 0.f){
-            changeState();
-        }
-    }
-
 }
 
 void Player::die(){
@@ -105,7 +98,8 @@ void Player::die(){
     m_pSys.setRange("duration" , 2.6 , 2.6);
     m_pSys.setRange("offsetX" , -4 , 4);
     m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
-    m_gravityDt = -4.f;
+    m_gravityDt = -2.5f;
+    m_sounds["death"].play();
 }
 
 void Player::respawn(sf::Vector2f pos){
@@ -141,7 +135,6 @@ bool Player::isAlive() const {
 void Player::changeState() {
     if(m_state == State::SOUL){
         m_state = State::NORMAL;
-        m_soulTimer[1] = 0.f;
         resetTextCoords();
         setTextSize({13,17});
         setTextOffset({3,3});
@@ -157,11 +150,10 @@ void Player::changeState() {
         m_pSys.setRange("duration" , 2.6 , 2.6);
         m_pSys.setRange("offsetX" , -4 , 4);
         m_gravityDt = 0.f;
-    } else if(manaCounter > 0){
+        m_sounds["exit_soul"].play();
+    } else {
         m_gravityDt = 0.f;
         m_state = State::SOUL;
-        manaCounter --;
-        m_soulTimer[1] = m_soulTimer[0];
         resetTextCoords();
         setTextSize({9,9});
         setTextOffset({1,-2});
@@ -176,6 +168,7 @@ void Player::changeState() {
         m_pSys.setRange("angle" , -90 , -90);
         m_pSys.setRange("duration" , 2.6 , 2.6);
         m_pSys.setRange("offsetX" , -4 , 4);
+        m_sounds["enter_soul"].play();
     }
 }
 
@@ -206,6 +199,7 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
             if (m_state == State::NORMAL && event.key.code == sf::Keyboard::Up){
                 if(m_airtime <= 3){
                     m_gravityDt = -m_jumpAmount;
+                    m_sounds["jump"].play();
                     float speed = Random::randFloat(urdf(30,50));
                     float scale = Random::randFloat(urdf(2.5f,4.5f));
                     for(int i = 0;i < 2;i++){
@@ -214,10 +208,6 @@ void Player::events(sf::Event & event , sf::Window & window , float dt){
                         m_sparks.push_back(s);
                     }
                 }
-            }
-
-            if(event.key.code == sf::Keyboard::Z && m_ableToReleaseSoul){
-                changeState();
             }
             break;
         
@@ -271,8 +261,21 @@ Player::Player(AssetManager* assets) : Entity(assets){
     m_pSys.setContinuous(false);
     m_ableToMove = true;
     m_ableToReleaseSoul = false;
-    manaCounter = 1;
-    m_soulTimer = {10.f , 0.f};
+
+    // Loading sounds
+
+    std::array<std::string , 4> soundNames {"jump", "enter_soul" , "exit_soul" , "death"};
+
+    for(auto & sn : soundNames){
+        sf::Sound sound {};
+        sound.setBuffer(assets->getSoundBuffer(sn));
+        m_sounds[sn] = sound;    
+    }
+
+}
+
+bool Player::isAbleToReleaseSoul() const {
+    return m_ableToReleaseSoul;
 }
 
 void Player::collisions(const std::vector<sf::FloatRect> & colliders , sf::View & view){

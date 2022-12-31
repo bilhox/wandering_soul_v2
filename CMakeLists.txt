@@ -22,7 +22,7 @@ src/enemy.cpp
 src/text.cpp
 src/mana.cpp
 )
-target_link_libraries(platformer PRIVATE sfml-graphics)
+target_link_libraries(platformer PRIVATE sfml-graphics sfml-audio)
 target_compile_features(platformer PRIVATE cxx_std_17)
 if (WIN32 AND BUILD_SHARED_LIBS)
     add_custom_command(TARGET platformer POST_BUILD
