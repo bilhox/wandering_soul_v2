@@ -595,24 +595,6 @@
                  "y":128
                 }, 
                 {
-                 "height":0,
-                 "id":99,
-                 "name":"text2",
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"content",
-                         "type":"string",
-                         "value":"Press z to release\/unrelease soul "
-                        }],
-                 "rotation":0,
-                 "type":"text",
-                 "visible":true,
-                 "width":0,
-                 "x":448,
-                 "y":208
-                }, 
-                {
                  "height":16,
                  "id":100,
                  "name":"m4",
@@ -662,6 +644,90 @@
                  "width":0,
                  "x":768,
                  "y":224
+                }, 
+                {
+                 "height":0,
+                 "id":107,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":815,
+                 "y":216
+                }, 
+                {
+                 "height":0,
+                 "id":108,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":271,
+                 "y":116
+                }, 
+                {
+                 "height":0,
+                 "id":109,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":94,
+                 "y":69
+                }, 
+                {
+                 "height":0,
+                 "id":110,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":52,
+                 "y":248
+                }, 
+                {
+                 "height":0,
+                 "id":111,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":365,
+                 "y":265
+                }, 
+                {
+                 "height":0,
+                 "id":112,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":515,
+                 "y":264
+                }, 
+                {
+                 "height":0,
+                 "id":113,
+                 "name":"",
+                 "point":true,
+                 "rotation":0,
+                 "type":"light",
+                 "visible":true,
+                 "width":0,
+                 "x":747,
+                 "y":167
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -670,7 +736,7 @@
          "y":0
         }],
  "nextlayerid":7,
- "nextobjectid":107,
+ "nextobjectid":114,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.7.2",

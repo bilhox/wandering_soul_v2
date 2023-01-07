@@ -9,6 +9,7 @@
 
 struct ObjectData{
 
+    unsigned long long id;
     std::string name;
     std::string type;
     sf::FloatRect rect;
@@ -24,7 +25,7 @@ class Tilemap : public sf::Transformable {
         const sf::Vector2u getSize() const;
         const sf::Vector2u getTileSize() const;
         const std::vector<sf::FloatRect> & getColliders() const;
-        const ObjectData & getObject(std::string name);
+        const ObjectData & getObjectByName(std::string name);
         const std::vector<ObjectData> getObjects(std::string type);
         void display(sf::RenderWindow & window , sf::View view , int lindex = -1);
 
@@ -37,7 +38,7 @@ class Tilemap : public sf::Transformable {
         std::vector<std::vector<unsigned int>> m_layer_datas;
         int m_LayerToDisplay;
         std::vector<sf::FloatRect> m_colliders;
-        std::map<std::string , ObjectData> m_objects;
+        std::map<unsigned long long , ObjectData> m_objects;
 
         void draw(sf::RenderTarget & target , sf::View view) const;
 

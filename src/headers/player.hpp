@@ -57,5 +57,6 @@ class Player : public Entity {
         bool m_ableToMove;
         bool m_ableToReleaseSoul;
         std::unordered_map<std::string , sf::Sound> m_sounds;
+        std::array<float , 2> m_soulTimer {10.f , 0.f};
 
 };

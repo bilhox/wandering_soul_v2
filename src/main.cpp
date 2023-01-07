@@ -31,12 +31,13 @@ int main()
 
     Player player {&assets};
 
-    auto startPos = map.getObject("player_position");
+    auto startPos = map.getObjectByName("player_position");
     player.setPosition(startPos.rect.getPosition());
     float death_time = 2.f;
     float proj_spawn = 0.5f;
 
-    sf::Clock clock{};
+    sf::Clock dtClock{};
+    sf::Clock gameClock {};
     float dt = 0;
 
     std::vector<Text> texts;
@@ -57,13 +58,25 @@ int main()
     // Orb shader things
 
     sf::Shader orbShader {};
-    sf::Clock orbShaderClock {};
 
     if(!orbShader.loadFromFile("../assets/manaOrb.frag" , sf::Shader::Fragment)){
-        throw std::runtime_error("Failed to shader manaOrb.");
+        throw std::runtime_error("Failed to load manaOrb shader .");
     }
 
     orbShader.setUniform("u_resolution" , sf::Vector2f(16.f , 16.f));
+
+    // Fog shader
+
+    sf::Shader fogShader {};
+
+    if(!fogShader.loadFromFile("../assets/fog.frag" , sf::Shader::Fragment))
+        throw std::runtime_error("Failed to load fog shader .");
+
+    assets.getTexture("fog_noise").setRepeated(true);
+    
+    fogShader.setUniform("u_resolution" , sf::Vector2f(900.f , 600.f));
+    fogShader.setUniform("u_noise" , assets.getTexture("fog_noise"));
+    fogShader.setUniform("u_scale" , 3.f);
 
     // Level orbs
 
@@ -77,7 +90,7 @@ int main()
     
     sf::View camera {sf::FloatRect({0,0},{300 , 200})};
 
-    auto dObj = map.getObject("door");
+    auto dObj = map.getObjectByName("door");
 
     auto door = instanciateDoor(&assets);
     door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f{4,0});
@@ -96,7 +109,7 @@ int main()
     int tick = 0;
 
     bool projSpawning = false;
-    bool invincible = true;
+    bool invincible = false;
     float slowTime = 0.f;
     float zoomTime = 1.2f;
     float game_timer = 0.f;
@@ -109,6 +122,8 @@ int main()
     sf::VertexArray black_filter;
     black_filter.resize(4);
     black_filter.setPrimitiveType(sf::TriangleStrip);
+
+    
 
     // Particle system
 
@@ -163,12 +178,12 @@ int main()
     for(int i = 0;i < lightRendering.getVertexCount();i++){
         sf::Vertex & vertex = lightRendering[i];
         vertex.position = sf::Vector2f((i%2)*900.f , (i/2)*600.f);
-        vertex.texCoords = sf::Vector2f((i%2)*300.f , (i/2)*200.f);
+        vertex.texCoords = sf::Vector2f((i%2)*900.f , (i/2)*600.f);
     }
 
     sf::RenderStates lightRenderingStates;
-    lightRenderingStates.texture = &lrt.getTexture();
-    lightRenderingStates.blendMode = sf::BlendAdd;
+    // lightRenderingStates.texture = &lrt.getTexture();
+    lightRenderingStates.shader = &fogShader;
 
     sf::Shader lightningShader;
 
@@ -193,8 +208,25 @@ int main()
     light.color = {12.f/255.f , 2.f/255.f , 6.f/255.f};
     lightTypes.push_back(light);
 
-    lightningShader.setUniform("lights[0].squaredRadius" , light.radius);
-    lightningShader.setUniform("lights[0].color" , light.color);
+    fogShader.setUniform("lights[0].squaredRadius" , light.radius);
+    fogShader.setUniform("lights[0].color" , light.color);
+
+    Light light2 {};
+    light2.radius = 20.f*20.f;
+    light2.color = {8.f/255.f , 8.f/255.f , 10.f/255.f};
+    lightTypes.push_back(light2);
+
+    fogShader.setUniform("lights[1].squaredRadius" , light2.radius);
+    fogShader.setUniform("lights[1].color" , light2.color);
+
+    {
+        std::vector<sf::Vector3f> sLights {};
+        for(auto & l : map.getObjects("light")){     
+            sLights.push_back(sf::Vector3f(l.rect.left , l.rect.top , 1));
+        }
+        fogShader.setUniformArray("staticPositions" , &sLights[0] , sLights.size());
+        fogShader.setUniform("nSLight" , (int) sLights.size());
+    }
 
     // Define UI texts
 
@@ -226,23 +258,23 @@ int main()
 
     unsigned int manaCounter = 1;
 
-    std::array<float , 2> playerSoulTimer {10.f , 0.f};
-
     // Sounds 
 
     std::unordered_map<std::string , sf::Sound> gameSounds;
-    std::array<std::string , 3> sbNames {"door" , "mana_1" , "mana_2"};
+    std::array<std::string , 6> sbNames {"door" , "mana_1" , "mana_2" , "end_level" , "eye_shoot" , "eye_shoot_large"};
 
     for(auto & sn : sbNames){
         sf::Sound sound {};
         sound.setBuffer(assets.getSoundBuffer(sn));
+        if(sn == "eye_shoot")
+            sound.setVolume(50.f);
         gameSounds[sn] = sound;    
     }
 
     while (window.isOpen())
     {
-        dt = clock.getElapsedTime().asSeconds();
-        clock.restart();
+        dt = dtClock.getElapsedTime().asSeconds();
+        dtClock.restart();
 
         dtAvg += dt;
         tick ++;
@@ -295,16 +327,13 @@ int main()
                             player.changeState();
                             player.setSoulReleasingAbility(true);
                             player.setMovementAbility(true);
-                            playerSoulTimer[1] = playerSoulTimer[0];
                         } else if (player.isAbleToReleaseSoul()){
                             if(!player.isSoul() && manaCounter > 0){
                                 player.changeState();
                                 manaCounter --;
                                 orbAmount.pop_back();
-                                playerSoulTimer[1] = playerSoulTimer[0];
                             } else if(player.isSoul()) {
                                 player.changeState();
-                                playerSoulTimer[1] = 0.f;
                             }
                         }
                     }
@@ -315,14 +344,8 @@ int main()
             }
         }
 
-        orbShader.setUniform("u_time" , orbShaderClock.getElapsedTime().asSeconds());
-
-        if(playerSoulTimer[1] > 0.f){
-            playerSoulTimer[1] -= dt;
-            if(playerSoulTimer[1] <= 0.f){
-                player.changeState();
-            }
-        }
+        orbShader.setUniform("u_time" , gameClock.getElapsedTime().asSeconds());
+        fogShader.setUniform("u_time" , gameClock.getElapsedTime().asSeconds());
 
         if(!paused)
             pSys.update(dt);
@@ -349,11 +372,13 @@ int main()
                             sparks.push_back(s);
                         }
                     }
+                    gameSounds["eye_shoot_large"].play();
                 }
                 lspt += dt;
                 if(lspt > 1.f)
                     lspt = 0.f;
-            } else if (game_timer > 45.f && !level_finished) {
+            } else if (game_timer > 50.f && !level_finished) {
+                gameSounds["end_level"].play();
                 door.visible = true;
                 pSys.setPosition(door.door.getPosition()+door.door.getSize()*0.5f);
                 pSys.spawnParticles(25);
@@ -385,11 +410,11 @@ int main()
                     texts.push_back(t);
                 }
                 
-                player.respawn(map.getObject("player_position").rect.getPosition());
+                player.respawn(map.getObjectByName("player_position").rect.getPosition());
                 projectiles.clear();
                 lights.clear();
                 orbs.clear();
-                auto dObj = map.getObject("door");
+                auto dObj = map.getObjectByName("door");
 
                 door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f(4,0));
                 door.destination = "../assets/levels/"+dObj.properties[0]["value"].get<std::string>();
@@ -407,6 +432,15 @@ int main()
                     ManaOrb orb{orbShader};
                     orb.setPosition(obj.rect.getPosition());
                     orbs.emplace_back(std::move(orb));
+                }
+
+                {
+                    std::vector<sf::Vector3f> sLights {};
+                    for(auto & l : map.getObjects("light")){     
+                        sLights.push_back(sf::Vector3f(l.rect.left , l.rect.top , 1));
+                    }
+                    fogShader.setUniformArray("staticPositions" , &sLights[0] , sLights.size());
+                    fogShader.setUniform("nSLight" , (int) sLights.size());
                 }
             }
         } else if (transition_time > 0.f){
@@ -432,7 +466,7 @@ int main()
             eye.updatePupil(player.getPosition());
         }
 
-        if(level == 1 && player.isAlive() && !transition && !projSpawning && map.getObject("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
+        if(level == 1 && player.isAlive() && !transition && !projSpawning && map.getObjectByName("ps1").rect.getPosition().x < player.getPosition().x+player.getSize().x){
             for(int i = 0;i < 22;i++){
                 sf::FloatRect camRect = {camera.getCenter()-camera.getSize()*0.5f,camera.getSize()};
                 auto entData = instanciateProjectile(&assets);
@@ -450,12 +484,14 @@ int main()
                     sparks.push_back(s);
                 }
             }
+            gameSounds["eye_shoot_large"].play();
             paused = true;
             projSpawning = true;
             player.setMovementAbility(false);
         }
 
         if(level == 3 && eye.isDead() && !level_finished){
+            gameSounds["end_level"].play();
             door.visible = true;
 
             pSys.setAnimation(assets.getAnimation("particle"));
@@ -484,6 +520,7 @@ int main()
                 if(projSpawning && !transition){
                     if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
                         player.die();
+                        player.setSoulReleasingAbility(false);
                         projectiles.clear();
                         lights.clear();
 
@@ -518,16 +555,15 @@ int main()
             }
         }
 
-        lightningShader.setUniformArray("positions" , &lights[0] , lights.size());
+        // lightningShader.setUniformArray("positions" , &lights[0] , lights.size());
 
-        lightningShader.setUniform("nLight" , (int)lights.size());
-        lightningShader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
+        // lightningShader.setUniform("nLight" , (int)lights.size());
 
         if(!player.isAlive()){
             death_time -= dt;
             if(death_time <= 0.f){
                 death_time = 2.f;
-                player.respawn(map.getObject("player_position").rect.getPosition());
+                player.respawn(map.getObjectByName("player_position").rect.getPosition());
             }
         }
 
@@ -574,8 +610,12 @@ int main()
                     s.setColor(sf::Color::Black);
                     sparks.push_back(s);
                 }
+                gameSounds["eye_shoot"].play();
             }
         }
+
+        // lightningShader.setUniform("viewOrigin" , (camera.getCenter()-camera.getSize()/2.f));
+        fogShader.setUniform("u_origin" , (camera.getCenter()-camera.getSize()/2.f));
 
         // Test if the player entered the door
 
@@ -612,7 +652,7 @@ int main()
         }
 
         window.clear({20, 19, 39});
-        lrt.clear({0,0,0,0});
+        lrt.clear();
         map.display(window , camera , 0);
         if(door.visible)
             door.door.display(window , camera);
@@ -648,8 +688,9 @@ int main()
             orb.display(window , window.getDefaultView());
         }
 
-        lrt.draw(result , &lightningShader);
-        lrt.display();
+        // lrt.draw(result , &lightningShader);
+        // lrt.display();
+
         window.draw(lightRendering , lightRenderingStates);
         window.draw(black_filter);
         window.display();

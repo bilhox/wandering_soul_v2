@@ -12,12 +12,16 @@ Tilemap::Tilemap(){
     m_layers = {};
 }
 
-const ObjectData & Tilemap::getObject(std::string name) {
-    if(m_objects.find(name) != m_objects.end()){
-        return m_objects[name];
-    } else {
-        throw std::runtime_error("Could not find an object with the name : "+name);
+const ObjectData & Tilemap::getObjectByName(std::string name) {
+
+    for(auto & p : m_objects){
+        if(p.second.name == name){
+            return p.second;
+        }
     }
+        
+    throw std::runtime_error("Could not find an object with the name : "+name);
+    
 }
 
 const std::vector<ObjectData> Tilemap::getObjects(std::string type){
@@ -91,7 +95,7 @@ bool Tilemap::load(std::string tmx_path){
                             obj.properties = object["properties"];
                         }
 
-                        m_objects[object["name"]] = obj;
+                        m_objects[object["id"]] = obj;
                     }
                 }
             }

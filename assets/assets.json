@@ -39,6 +39,10 @@
         {
             "name":"small font",
             "source":"./fonts/small_font.png"
+        },
+        {
+            "name":"fog_noise",
+            "source":"./images/noise.png"
         }
     ],
     "animations":[

@@ -64,6 +64,13 @@ void Player::update(float dt){
         }
     }
 
+    if(m_soulTimer[1] > 0.f){
+            m_soulTimer[1] -= dt;
+            if(m_soulTimer[1] <= 0.f){
+                changeState();
+            }
+        }
+
 }
 
 void Player::die(){
@@ -100,6 +107,7 @@ void Player::die(){
     m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
     m_gravityDt = -2.5f;
     m_sounds["death"].play();
+    m_soulTimer[1] = 0.f;
 }
 
 void Player::respawn(sf::Vector2f pos){
@@ -151,7 +159,9 @@ void Player::changeState() {
         m_pSys.setRange("offsetX" , -4 , 4);
         m_gravityDt = 0.f;
         m_sounds["exit_soul"].play();
+        m_soulTimer[1] = 0.f;
     } else {
+        m_soulTimer[1] = m_soulTimer[0];
         m_gravityDt = 0.f;
         m_state = State::SOUL;
         resetTextCoords();
@@ -240,7 +250,7 @@ void Player::setMovementAbility(bool state){
 Player::Player(AssetManager* assets) : Entity(assets){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
-    m_jumpAmount = 1.75f;
+    m_jumpAmount = 1.8f;
     m_gravityDt = 0.f;
     m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});

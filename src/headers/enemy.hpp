@@ -56,4 +56,5 @@ class Eye : public Entity {
         bool m_dead;
         float m_deathTimer;
         Pupil m_pupil {8.f};
+        std::unordered_map<std::string , sf::Sound> m_sounds;
 };

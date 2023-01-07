@@ -18,6 +18,18 @@ Eye::Eye(AssetManager* assets) : Entity(assets){
     m_stateDelay = 5.f;
     m_dead = false;
     m_deathTimer = 4.f;
+
+    // Loading sounds
+
+    std::array<std::string , 4> soundNames {"shake", "eye_shoot" , "eye_shoot_large"};
+
+    for(auto & sn : soundNames){
+        sf::Sound sound {};
+        sound.setBuffer(assets->getSoundBuffer(sn));
+        if(sn == "eye_shoot")
+            sound.setVolume(75.f);
+        m_sounds[sn] = sound;    
+    }
 }
 
 void Eye::setTargetPos(const sf::Vector2f & pos){
@@ -80,6 +92,7 @@ void Eye::update(float dt) {
                 auto v = m_targetPos-getPosition();
                 if(v.x*v.x+v.y*v.y != 0){
                     for(int i = -1;i < 2;i+=2){
+                        m_sounds["eye_shoot"].play();
                         auto proj = instanciateProjectile(m_assets);
                         auto angle = std::atan2(v.y , v.x);
                         proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*125.f;
@@ -115,6 +128,7 @@ void Eye::update(float dt) {
                 projectiles->push_back(proj);
                         lights->push_back(proj.projectile.getLightDatas());
             }
+            m_sounds["eye_shoot_large"].play();
             for(int i = 0;i < 6 ;i++){
                 float sp = Random::randFloat(urdf(200,250));
                 float sc = Random::randFloat(urdf(7.f,8.5f));
@@ -138,6 +152,7 @@ void Eye::update(float dt) {
                         lights->push_back(proj.projectile.getLightDatas());
                     m_nProjSpawned ++;
                 }
+                m_sounds["eye_shoot"].play();
                 
                 for(int i = 0;i < 6 ;i++){
                     float sp = Random::randFloat(urdf(200,250));
@@ -172,6 +187,7 @@ void Eye::update(float dt) {
                     m_nProjSpawned ++;
                     }
                 }
+                m_sounds["eye_shoot"].play();
                 
                 for(int i = 0;i < 6 ;i++){
                     float sp = Random::randFloat(urdf(200,250));
@@ -201,6 +217,7 @@ void Eye::update(float dt) {
                     projectiles->push_back(proj);
                     lights->push_back(proj.projectile.getLightDatas());
                     m_nProjSpawned ++;
+                    m_sounds["eye_shoot"].play();
                 }
                 
                 
@@ -225,7 +242,6 @@ void Eye::update(float dt) {
             m_deathTimer -= dt;
             auto off = urdi(0 , 8);
             setTextOffset(sf::Vector2f(Random::randInt(off)-4, Random::randInt(off)-4));
-
             if(m_deathTimer < 0.f){
                 m_dead = true;
             }
@@ -242,6 +258,8 @@ void Eye::update(float dt) {
         m_stateDelay -= dt;
         setSize({60 , getSize().y+(3-getSize().y)/20.f});
         setVertexPositions();
+        if(m_stateDelay < 0.f && m_attack == AttackState::NONE)
+            m_sounds["shake"].play();
     }
 
     for (int i = m_sparks.size()-1;i >= 0;i--){
