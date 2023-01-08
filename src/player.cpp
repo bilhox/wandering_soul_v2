@@ -105,7 +105,7 @@ void Player::die(){
     m_pSys.setRange("duration" , 2.6 , 2.6);
     m_pSys.setRange("offsetX" , -4 , 4);
     m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
-    m_gravityDt = -2.5f;
+    m_gravityDt = -1.75f;
     m_sounds["death"].play();
     m_soulTimer[1] = 0.f;
 }
