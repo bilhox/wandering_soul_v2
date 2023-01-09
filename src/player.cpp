@@ -73,6 +73,15 @@ void Player::update(float dt){
 
 }
 
+bool Player::canEnterTheDoor(Door & door) const {
+    return (
+        !isSoul() &&
+        isAlive() &&
+        getRect().intersects(door.door.getRect()) &&
+        m_airtime <= 2
+    );
+}
+
 void Player::die(){
     m_velocity = {0,-2};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};

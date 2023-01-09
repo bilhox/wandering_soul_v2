@@ -43,6 +43,7 @@ class ParticleSystem{
         void setRange(std::string type , float min , float max);
         void setContinuous(bool state);
         void setAnimation(Animation & animation);
+        void setColor(sf::Color color);
         void clear();
     
     private:
@@ -55,6 +56,7 @@ class ParticleSystem{
         std::map<std::string , urdf> m_urdfs;
         std::vector<Particle> m_particles;
         Animation m_anim;
+        sf::Color m_color;
     
     private:
 

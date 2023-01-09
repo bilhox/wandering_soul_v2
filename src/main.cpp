@@ -141,6 +141,21 @@ int main()
     pSys.setRange("duration" , 0.6f , 1.2f);
     pSys.setRange("offsetX" , 0 , 0);
 
+    ParticleSystem lightParticleSys {{0,0}};
+
+    lightParticleSys.setAnimation(assets.getAnimation("player_particle"));
+    lightParticleSys.setContinuous(false);
+    lightParticleSys.setRange("speed" , 4 , 11);
+    lightParticleSys.setRange("angle" , 70 , 110);
+    lightParticleSys.setRange("duration" , 2.0f , 3.0f);
+    lightParticleSys.setRange("offsetX" , 0 , 0);
+
+    lightParticleSys.setColor({214, 236, 255});
+
+    std::array<float , 2> lpsr {0.05f , 0.0f};
+
+    // Filter for transition
+
     for(int i = 0;i < black_filter.getVertexCount();i++){
         sf::Vertex & vertex = black_filter[i];
         vertex.position = sf::Vector2f((i%2)*900.f , (i/2)*600.f);
@@ -148,14 +163,13 @@ int main()
     }
 
     std::vector<EntityData> projectiles{};
-    std::vector<sf::Vector3f> lights{};
+    // std::vector<sf::Vector3f> lights{};
 
     // Eye enemy in level 3
 
     Eye eye {&assets};
     eye.player = &player;
     eye.projectiles = &projectiles;
-    eye.lights = &lights;
     eye.setPosition({324 , 365});
     eye.setTargetPos(player.getPosition());
 
@@ -163,18 +177,18 @@ int main()
 
     // Lightning system
 
-    sf::RenderTexture lrt;
-    lrt.create(300 , 200);
-    lrt.clear({0,0,0,0});
+    // sf::RenderTexture lrt;
+    // lrt.create(300 , 200);
+    // lrt.clear({0,0,0,0});
 
-    sf::VertexArray result;
-    result.resize(4);
-    result.setPrimitiveType(sf::TriangleStrip);
+    // sf::VertexArray result;
+    // result.resize(4);
+    // result.setPrimitiveType(sf::TriangleStrip);
 
-    for(int i = 0;i < result.getVertexCount();i++){
-        sf::Vertex & vertex = result[i];
-        vertex.position = sf::Vector2f((i%2)*300.f , (i/2)*200.f);
-    }
+    // for(int i = 0;i < result.getVertexCount();i++){
+    //     sf::Vertex & vertex = result[i];
+    //     vertex.position = sf::Vector2f((i%2)*300.f , (i/2)*200.f);
+    // }
 
     sf::VertexArray lightRendering;
     lightRendering.resize(4);
@@ -356,8 +370,20 @@ int main()
         orbShader.setUniform("u_time" , gameClock.getElapsedTime().asSeconds());
         fogShader.setUniform("u_time" , gameClock.getElapsedTime().asSeconds());
 
-        if(!paused)
+        lpsr[1] += dt;
+        if(lpsr[1] > lpsr[0]){
+            for(auto & obj : map.getObjects("light_particles")){
+                lightParticleSys.setPosition(obj.rect.getPosition());
+                lightParticleSys.spawnParticles(1);
+            }
+            lpsr[1] = 0.f;
+        }
+
+        lightParticleSys.update(dt);
+
+        if(!paused){
             pSys.update(dt);
+        }
 
         if(level == 2){
 
@@ -371,7 +397,6 @@ int main()
                         entData.projectile.setPosition(pp);
                         entData.movement = sf::Vector2f((dir)?1:-1 , 0)*50.f;
                         projectiles.push_back(entData);
-                        lights.push_back(entData.projectile.getLightDatas());
                         for(int i = 0;i < 6 ;i++){
                             float sp = Random::randFloat(urdf(150,200));
                             float sc = Random::randFloat(urdf(5.5f,7.5f));
@@ -425,8 +450,8 @@ int main()
                     
                     player.respawn(map.getObjectByName("player_position").rect.getPosition());
                     projectiles.clear();
-                    lights.clear();
                     orbs.clear();
+                    lightParticleSys.clear();
                     auto dObj = map.getObjectByName("door");
 
                     door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f(4,0));
@@ -468,6 +493,9 @@ int main()
 
                     manaCounterText.setShadowColor({0, 152, 219});
                     manaCounterText.setText("mana :");
+
+                    if(level > 1 && level != 4)
+                        player.setSoulReleasingAbility(true);
 
                     orbAmount.clear();
 
@@ -522,7 +550,6 @@ int main()
                 entData.projectile.setPosition(pp);
                 entData.movement = sf::Vector2f(-1 , 0)*50.f;
                 projectiles.push_back(entData);
-                lights.push_back(entData.projectile.getLightDatas());
                 for(int i = 0;i < 6 ;i++){
                     float sp = Random::randFloat(urdf(200,250));
                     float sc = Random::randFloat(urdf(8.f,10.5f));
@@ -564,12 +591,10 @@ int main()
         if(!paused){
             for(int i = projectiles.size() -1 ; i >= 0 ; i--){
                 projectiles[i].projectile.move(projectiles[i].movement*dt);
-                lights[i] = projectiles[i].projectile.getLightDatas();
                 if(projSpawning && !transition){
                     if(!invincible && player.isAlive() && player.getRect().intersects(projectiles[i].projectile.getRect())){
                         player.die();
                         player.setSoulReleasingAbility(false);
-                        lights.clear();
                         transitionType = TransitionType::DEATH;
                         transition = true;
                         break;
@@ -577,7 +602,6 @@ int main()
                 }
                 if(!projectiles[i].projectile.getRect().intersects(mapRect)){
                         projectiles.erase(projectiles.begin()+i);
-                        lights.erase(lights.begin()+i);
                     }
             }
 
@@ -621,7 +645,6 @@ int main()
                 p.movement = sf::Vector2f{std::cos((float)(M_PI/180)*angle),std::sin((float)(M_PI/180)*angle)}*50.f;
                 p.projectile.setPosition({camRect.left+randXpos,camRect.top});
                 projectiles.push_back(p);
-                lights.push_back(p.projectile.getLightDatas());
                 if(level == 1){
                     proj_spawn = 0.5f;
                 }
@@ -647,7 +670,7 @@ int main()
 
         // Test if the player entered the door
 
-        if(player.isAlive() && !transition && door.visible && !player.isSoul() && player.getRect().intersects(door.door.getRect())){
+        if(!transition && door.visible && player.canEnterTheDoor(door)){
             transition = true;
             transitionType = TransitionType::LEVEL;
             level += 1;
@@ -687,7 +710,7 @@ int main()
         }
 
         window.clear({20, 19, 39});
-        lrt.clear();
+        // lrt.clear();
         map.display(window , camera , 0);
         if(door.visible)
             door.door.display(window , camera);
@@ -711,6 +734,7 @@ int main()
             spark.draw(window , camera);
         }
         pSys.display(window , camera);
+        lightParticleSys.display(window , camera);
         
         for(auto & text : texts){
             text.display(window , camera);

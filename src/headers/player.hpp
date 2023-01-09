@@ -23,6 +23,7 @@ class Player : public Entity {
         bool isSoul() const;
         void respawn(sf::Vector2f pos);
         void die();
+        bool canEnterTheDoor(Door & door) const;
         bool isAlive() const;
         bool isAbleToReleaseSoul() const;
         void postUpdate(float dt);

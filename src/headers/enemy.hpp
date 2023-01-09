@@ -29,7 +29,6 @@ class Eye : public Entity {
     public:
         Player* player;
         std::vector<EntityData>* projectiles;
-        std::vector<sf::Vector3f>* lights;
 
     public:
         Eye(AssetManager* assets);

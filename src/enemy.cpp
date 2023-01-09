@@ -99,7 +99,6 @@ void Eye::update(float dt) {
                         auto orthoOff = sf::Vector2f{-std::sin(angle),std::cos(angle)}*(float)m_nProjSpawned*4.f*(float)i;
                         proj.projectile.setPosition(getPosition()+orthoOff);
                         projectiles->push_back(proj);
-                        lights->push_back(proj.projectile.getLightDatas());
                     }
                     for(int i = 0;i < 6 ;i++){
                         float sp = Random::randFloat(urdf(200,250));
@@ -126,7 +125,6 @@ void Eye::update(float dt) {
                 proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*45.f;
                 proj.projectile.setPosition(getPosition());
                 projectiles->push_back(proj);
-                        lights->push_back(proj.projectile.getLightDatas());
             }
             m_sounds["eye_shoot_large"].play();
             for(int i = 0;i < 6 ;i++){
@@ -149,7 +147,6 @@ void Eye::update(float dt) {
                     proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*30.f;
                     proj.projectile.setPosition(getPosition());
                     projectiles->push_back(proj);
-                        lights->push_back(proj.projectile.getLightDatas());
                     m_nProjSpawned ++;
                 }
                 m_sounds["eye_shoot"].play();
@@ -183,7 +180,6 @@ void Eye::update(float dt) {
                     proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*30.f;
                     proj.projectile.setPosition(getPosition());
                     projectiles->push_back(proj);
-                    lights->push_back(proj.projectile.getLightDatas());
                     m_nProjSpawned ++;
                     }
                 }
@@ -215,7 +211,6 @@ void Eye::update(float dt) {
                     proj.movement = sf::Vector2f{std::cos(angle) , std::sin(angle)}*30.f;
                     proj.projectile.setPosition(getPosition());
                     projectiles->push_back(proj);
-                    lights->push_back(proj.projectile.getLightDatas());
                     m_nProjSpawned ++;
                     m_sounds["eye_shoot"].play();
                 }

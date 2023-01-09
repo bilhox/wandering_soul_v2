@@ -18,8 +18,8 @@ uniform Light lights[50];
 uniform vec3 staticPositions[200];
 
 void main(){
-    vec2 st = (u_origin*3.0+vec2(gl_TexCoord[0].x-u_time * 50 , gl_TexCoord[0].y))/u_resolution;
-    st /= 3.0;
+    vec2 st = (u_origin*u_scale+gl_TexCoord[0].xy-vec2(u_time * 15 , 0)*u_scale)/u_resolution;
+    st /= u_scale;
     vec3 noise_color = texture2D(u_noise , st).xyz-vec3(0.45);
     float noise_val = noise_color.r * 0.75;
 

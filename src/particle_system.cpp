@@ -47,6 +47,7 @@ ParticleSystem::ParticleSystem(sf::Vector2f startpos){
     setRange("offsetX" , 0 , 0);
     setRange("offsetY" , 0 , 0);
     m_vertices = {};
+    m_color = sf::Color::White;
 }
 
 void ParticleSystem::setPosition(const sf::Vector2f & position){
@@ -85,6 +86,10 @@ void ParticleSystem::setRange(std::string type , float min , float max){
 
 void ParticleSystem::setAnimation(Animation & animation){
     m_anim = animation;
+}
+
+void ParticleSystem::setColor(sf::Color color){
+    m_color = color;
 }
 
 void ParticleSystem::update(float dt){
@@ -128,6 +133,9 @@ void ParticleSystem::spawnParticles(unsigned int n){
         particle.position = m_position+sf::Vector2f{offX , offY};
         particle.setAnimation(m_anim);
         m_vertices.insert(m_vertices.end() , 6 , sf::Vertex{});
+        for(int i = 1;i < 7;i++){
+            m_vertices[m_vertices.size()-i].color = m_color;
+        }
         m_particles.push_back(particle);
     }
     
