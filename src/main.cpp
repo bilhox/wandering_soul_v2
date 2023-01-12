@@ -26,7 +26,7 @@ int main()
     map.load("../assets/levels/entrance.json");
 
     sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
-    auto window = sf::RenderWindow{ {Const::ORIGINAL_WINSIZE.x , Const::ORIGINAL_WINSIZE.y} , "XML parser test"};
+    auto window = sf::RenderWindow{ {Const::ORIGINAL_WINSIZE.x , Const::ORIGINAL_WINSIZE.y} , "Wandering soul - v0.5.2"};
     // window.setVerticalSyncEnabled(true);
     window.setFramerateLimit(120);
     window.setKeyRepeatEnabled(false);
@@ -509,6 +509,8 @@ int main()
                     } 
 
                     game_timer = 0.f;
+                    level_finished = false;
+
                     if(level == 1){
                         projSpawning = false;
                     } else {
