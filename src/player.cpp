@@ -49,7 +49,7 @@ void Player::update(float dt){
     if(m_state == State::NORMAL){
         float gravityTemp = m_gravityDt;
         m_gravityDt += 2.75*dt;
-        m_velocity.y = 15*std::pow(m_gravityDt,2)-15*std::pow(gravityTemp,2);
+        m_velocity.y = 20*std::pow(m_gravityDt,2)-20*std::pow(gravityTemp,2);
     }
     
     m_velocity.x = std::max(-10.f , (float) std::min(10.f , m_velocity.x));
@@ -114,7 +114,7 @@ void Player::die(){
     m_pSys.setRange("duration" , 2.6 , 2.6);
     m_pSys.setRange("offsetX" , -4 , 4);
     m_pSys.setAnimation(m_assets->getAnimation("player_particle"));
-    m_gravityDt = -1.75f;
+    m_gravityDt = -1.25f;
     m_sounds["death"].play();
     m_soulTimer[1] = 0.f;
 }
@@ -259,7 +259,7 @@ void Player::setMovementAbility(bool state){
 Player::Player(AssetManager* assets) : Entity(assets){
     m_velocity = {0,0};
     m_keys = {{"left" , false},{"right" , false},{"up" , false},{"down" , false}};
-    m_jumpAmount = 1.8f;
+    m_jumpAmount = 1.4f;
     m_gravityDt = 0.f;
     m_anim = &m_assets->getAnimation("idle");
     setSize({7 , 13});
