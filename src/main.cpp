@@ -34,6 +34,18 @@ int main()
     AssetManager assets{};
     assets.loadFromFile("../assets/assets.json");
 
+    sf::Music music1 {};
+    sf::Music music2 {};
+
+    if(!music1.openFromFile("../assets/sounds/music_1.wav"))
+        return -1;
+    if(!music2.openFromFile("../assets/sounds/music_2.wav"))
+        return -1;
+
+    music1.setLoop(true);
+    music2.setLoop(true);
+    music1.play();
+
     Player player {&assets};
 
     auto startPos = map.getObjectByName("player_position");
@@ -175,20 +187,6 @@ int main()
 
     camera.setCenter((player.getPosition()+player.getSize()*.5f));
 
-    // Lightning system
-
-    // sf::RenderTexture lrt;
-    // lrt.create(300 , 200);
-    // lrt.clear({0,0,0,0});
-
-    // sf::VertexArray result;
-    // result.resize(4);
-    // result.setPrimitiveType(sf::TriangleStrip);
-
-    // for(int i = 0;i < result.getVertexCount();i++){
-    //     sf::Vertex & vertex = result[i];
-    //     vertex.position = sf::Vector2f((i%2)*300.f , (i/2)*200.f);
-    // }
 
     sf::VertexArray lightRendering;
     lightRendering.resize(4);
@@ -434,6 +432,13 @@ int main()
                 transition_time = 1.f;
                 transition = false;
                 if(transitionType == TransitionType::LEVEL){
+                    if(level == 3){
+                        music1.stop();
+                        music2.play();
+                    } else if(music2.getStatus() == sf::SoundSource::Playing) {
+                        music2.stop();
+                        music1.play();
+                    }
                     map.load(door.destination);
                     texts.clear();
 
