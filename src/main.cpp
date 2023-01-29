@@ -23,23 +23,28 @@ int main()
 
     auto map = Tilemap();
 
-    map.load("../assets/levels/entrance.json");
+    map.load("./assets/levels/entrance.json");
 
     sf::FloatRect mapRect = {{0,0},sf::Vector2f{(float)map.getSize().x*map.getTileSize().x , (float)map.getSize().y*map.getTileSize().y}};
-    auto window = sf::RenderWindow{ {Const::ORIGINAL_WINSIZE.x , Const::ORIGINAL_WINSIZE.y} , "Wandering soul - v0.5.2"};
+    auto window = sf::RenderWindow{ {Const::ORIGINAL_WINSIZE.x , Const::ORIGINAL_WINSIZE.y} , "Wandering soul - v2.5.4"};
     // window.setVerticalSyncEnabled(true);
     window.setFramerateLimit(120);
     window.setKeyRepeatEnabled(false);
 
     AssetManager assets{};
-    assets.loadFromFile("../assets/assets.json");
+    assets.loadFromFile("./assets/assets.json");
+
+    sf::Image logo {};
+    logo.loadFromFile("./assets/images/logo.png");
+
+    window.setIcon(32 , 32 , logo.getPixelsPtr());
 
     sf::Music music1 {};
     sf::Music music2 {};
 
-    if(!music1.openFromFile("../assets/sounds/music_1.wav"))
+    if(!music1.openFromFile("./assets/sounds/music_1.wav"))
         return -1;
-    if(!music2.openFromFile("../assets/sounds/music_2.wav"))
+    if(!music2.openFromFile("./assets/sounds/music_2.wav"))
         return -1;
 
     music1.setLoop(true);
@@ -76,7 +81,7 @@ int main()
 
     sf::Shader orbShader {};
 
-    if(!orbShader.loadFromFile("../assets/manaOrb.frag" , sf::Shader::Fragment)){
+    if(!orbShader.loadFromFile("./assets/manaOrb.frag" , sf::Shader::Fragment)){
         throw std::runtime_error("Failed to load manaOrb shader .");
     }
 
@@ -86,7 +91,7 @@ int main()
 
     sf::Shader fogShader {};
 
-    if(!fogShader.loadFromFile("../assets/fog.frag" , sf::Shader::Fragment))
+    if(!fogShader.loadFromFile("./assets/fog.frag" , sf::Shader::Fragment))
         throw std::runtime_error("Failed to load fog shader .");
 
     assets.getTexture("fog_noise").setRepeated(true);
@@ -111,7 +116,7 @@ int main()
 
     auto door = instanciateDoor(&assets);
     door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f{4,0});
-    door.destination = "../assets/levels/"+dObj.properties[0]["value"].get<std::string>();
+    door.destination = "./assets/levels/"+dObj.properties[0]["value"].get<std::string>();
     door.destination += ".json";
     door.visible = dObj.properties[1]["value"].get<bool>();
 
@@ -120,7 +125,7 @@ int main()
     std::vector<Spark> sparks;
 
     sf::Texture proj;
-    proj.loadFromFile("../assets/images/projectile.png");
+    proj.loadFromFile("./assets/images/projectile.png");
 
     float dtAvg = 0.f;
     int tick = 0;
@@ -211,7 +216,7 @@ int main()
     }
 
 
-    if(!lightningShader.loadFromFile("../assets/lightning.frag" , sf::Shader::Fragment)){
+    if(!lightningShader.loadFromFile("./assets/lightning.frag" , sf::Shader::Fragment)){
         std::cout << "Failed to load fragment lightningShader" << std::endl;
         return -1;
     }
@@ -292,15 +297,6 @@ int main()
     {
         dt = dtClock.getElapsedTime().asSeconds();
         dtClock.restart();
-
-        dtAvg += dt;
-        tick ++;
-        if(dtAvg >= 1.f){
-            float fps = 1/(dtAvg/(float)tick);
-            tick = 0;
-            dtAvg = 0.f;
-            window.setTitle("FPS : " + std::to_string(fps));
-        }
 
         if(slowTime > 0.f){
             slowTime -= dt;
@@ -460,7 +456,7 @@ int main()
                     auto dObj = map.getObjectByName("door");
 
                     door.door.setPosition(dObj.rect.getPosition()+sf::Vector2f(4,0));
-                    door.destination = "../assets/levels/"+dObj.properties[0]["value"].get<std::string>();
+                    door.destination = "./assets/levels/"+dObj.properties[0]["value"].get<std::string>();
                     door.destination += ".json";
                     door.visible = dObj.properties[1]["value"].get<bool>();
                     if(level != 4 && level != 1)

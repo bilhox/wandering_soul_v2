@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(platformer LANGUAGES CXX)
+project(wandering_soul_v2 LANGUAGES CXX)
 
 include(FetchContent)
 FetchContent_Declare(SFML
@@ -7,7 +7,7 @@ FetchContent_Declare(SFML
     GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(platformer 
+add_executable(wandering_soul_v2 
 src/main.cpp 
 src/entity.cpp 
 src/collision_utils.cpp 
@@ -22,11 +22,11 @@ src/enemy.cpp
 src/text.cpp
 src/mana.cpp
 )
-target_link_libraries(platformer PRIVATE sfml-graphics sfml-audio)
-target_compile_features(platformer PRIVATE cxx_std_17)
+target_link_libraries(wandering_soul_v2 PRIVATE sfml-graphics sfml-audio)
+target_compile_features(wandering_soul_v2 PRIVATE cxx_std_17)
 if (WIN32 AND BUILD_SHARED_LIBS)
-    add_custom_command(TARGET platformer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:platformer> $<TARGET_FILE_DIR:platformer> COMMAND_EXPAND_LISTS)
+    add_custom_command(TARGET wandering_soul_v2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:wandering_soul_v2> $<TARGET_FILE_DIR:wandering_soul_v2> COMMAND_EXPAND_LISTS)
 endif()
 
-install(TARGETS platformer)
+install(TARGETS wandering_soul_v2)
